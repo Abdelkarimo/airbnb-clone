@@ -26,3 +26,6 @@ export interface RegisterData{
   lastName:string;
   role: 'guest' | 'host';
 }
+export interface SocialLoginRequest {
+  token: string;
+}

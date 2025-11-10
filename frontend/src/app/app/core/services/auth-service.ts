@@ -1,9 +1,9 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, from, Observable, switchMap, tap } from 'rxjs';
-import { AuthResponse, LoginCredentials, RegisterData, User } from '../features/auth/authModels';
+import { AuthResponse, LoginCredentials, RegisterData, User, UserRole } from '../../features/auth/authModels';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, 
@@ -98,7 +98,6 @@ export class AuthService {
         return from(idToken);
       }),
       switchMap((firebaseToken: string) => {
-        // Send Firebase token to your backend for verification
         return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/google`, {
           token: firebaseToken
         });
@@ -139,11 +138,8 @@ export class AuthService {
       // Sign out from Firebase
       if (this.firebaseAuth) {
         firebaseSignOut(this.firebaseAuth).catch(() => {
-          // Silent fail for Firebase logout
         });
       }
-
-      // Call backend logout if needed
       this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({
         next: () => this.completeLogout(observer),
         error: () => this.completeLogout(observer)
@@ -156,8 +152,8 @@ export class AuthService {
     observer.next();
     observer.complete();
   }
- /**
-   * Stores authentication data securely
+ /*
+   * Stores authentication data
    */
   private setAuthData(token: string, user: User): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -175,7 +171,7 @@ export class AuthService {
       localStorage.removeItem(this.USER_KEY);
     }
   }
-    /**
+    /*
    * Gets current authentication token
    */
   getToken(): string | null {
@@ -199,7 +195,7 @@ export class AuthService {
     /**
    * Checks if user has specific role
    */
-  hasRole(role: User['role']): boolean {
+  hasRole(role: UserRole): boolean {
     const user = this.currentUserSubject.value;
     return user ? user.role === role : false;
   }
