@@ -1,10 +1,17 @@
+using BLL.AutoMapper.Profiles;
+using BLL.Services.Abstractions;
+using BLL.Services.Impelementation;
 using DAL.Database;
 using DAL.Entities;
 using DAL.Enum;
 using DAL.Repo.Abstraction;
 using DAL.Repo.Implementation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace PL
 {
@@ -25,6 +32,7 @@ namespace PL
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
             })
+
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
@@ -42,11 +50,49 @@ namespace PL
             builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
             builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
             builder.Services.AddScoped<IKeywordRepository, KeywordRepository>();
-
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // JWT Authentication
+            var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["ValidIssuer"],
+                    ValidAudience = jwtSettings["ValidAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]))
+                };
+            });
+
+            // Services
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddAutoMapper(m =>
+            {
+                m.AddProfile<AuthProfiles>();
+            });
+            // CORS for Angular
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AngularClient", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
             var app = builder.Build();
 
             await AppDbInitializer.SeedAsync(app);
@@ -58,7 +104,7 @@ namespace PL
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AngularClient");
             // Identity middlewares
             app.UseAuthentication();
             app.UseAuthorization();

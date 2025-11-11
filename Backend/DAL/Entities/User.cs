@@ -38,7 +38,7 @@
         }
 
         // Update user details
-        internal void Update(
+        public void Update(
             string? fullName = null,
             string? profileImg = null,
             string? firebaseUid = null,

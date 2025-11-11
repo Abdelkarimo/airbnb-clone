@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl:'http://localhost:3000/api', //Microsoft Identity backend API  
+  apiUrl: 'https://localhost:7145',
   firebaseConfig :{
   apiKey: "AIzaSyBASLdcU8EYlk5z8P8q9LGElzFEca6Xcbw",
   authDomain: "airbnb-clone-iti-grad-project.firebaseapp.com",

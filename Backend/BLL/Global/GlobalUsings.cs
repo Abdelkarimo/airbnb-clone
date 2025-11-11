@@ -1,0 +1,13 @@
+﻿global using BLL.ModelVM.AuthenticationVMs;
+global using DAL.Enum;
+global using BLL.Services.Abstractions;
+global using Microsoft.Extensions.Configuration;
+global using DAL.Entities;
+global using Microsoft.AspNetCore.Identity;
+global using AutoMapper;
+global using FirebaseAdmin.Auth;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.IdentityModel.Tokens;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.Security.Claims;
+global using System.Text;
