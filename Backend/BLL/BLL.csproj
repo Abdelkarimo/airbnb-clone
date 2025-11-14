@@ -14,9 +14,6 @@
     <Folder Include="AutoMapper\" />
     <Folder Include="Common\" />
     <Folder Include="Global\" />
-    <Folder Include="ModelVM\" />
-    <Folder Include="Services\Abstractions\" />
-    <Folder Include="Services\Impelementation\" />
   </ItemGroup>
 
 </Project>
