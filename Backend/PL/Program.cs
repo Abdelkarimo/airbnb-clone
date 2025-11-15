@@ -1,3 +1,7 @@
+using BLL.Services;
+using BLL.Services.Abstractions;
+using BLL.Services.Impelementation;
+using PL.Hubs;
 using DAL.Database;
 using DAL.Entities;
 using DAL.Enum;
@@ -14,6 +18,7 @@ using DAL.Entities;
 using DAL.Enum;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PL.Hubs;
 
 namespace PL
 {
@@ -49,8 +54,34 @@ namespace PL
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            //Team Member: Abdallah Assem
+            // Date: 10-11-2025
+            // Descriprion: Add SignalR and Chat Service / Configure CORS for Angular
+            // Add SignalR and Chat Service
+            builder.Services.AddSignalR();
 
+
+
+
+
+
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
+            builder.Services.AddScoped<IChatService, ChatService>();
+
+            // Configure CORS for Angular
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AngularClient", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200", "http://localhost:4200")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
             var app = builder.Build();
+            // Configure the HTTP request pipeline.
             app.UseStaticFiles();
 
             await AppDbInitializer.SeedAsync(app);
@@ -63,12 +94,20 @@ namespace PL
 
             app.UseHttpsRedirection();
 
+            // Use CORS
+            app.UseCors("AngularClient");
+
             // Identity middlewares
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
 
+            // Map SignalR Hub
+            app.MapHub<ChatHub>("/chatHub");
+            
+            ///////////End of Team Member: Abdallah Assem            
+        
             app.Run();
         }
     }
@@ -102,7 +141,7 @@ namespace PL
                 );
 
                 admin = User.Create("System Admin", UserRole.Admin);
-
+                
 
                 // Set Identity fields manually
                 admin.Email = adminEmail;
