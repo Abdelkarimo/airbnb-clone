@@ -1,11 +1,13 @@
 using BLL.Services.Abstractions;
 using BLL.Services.Impelementation;
 using PL.Hubs;
+
+using BLL.AutoMapper;
+using BLL.Common;
+using DAL.Common;
 using DAL.Database;
 using DAL.Entities;
 using DAL.Enum;
-using DAL.Repo.Abstraction;
-using DAL.Repo.Implementation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,23 +30,17 @@ namespace PL
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
             })
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<AppDbContext>();
 
-            // Repositories
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IListingRepository, ListingRepository>();
-            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-            builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
-            builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
-            builder.Services.AddScoped<IKeywordRepository, KeywordRepository>();
+            // add modular in program
+            builder.Services.AddBuissinesInBLL();
+            builder.Services.AddBuissinesInDAL();
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ListingProfile>());//AutoMapperForListing BLL
+
+
+
+
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -75,6 +71,7 @@ namespace PL
             });
             var app = builder.Build();
             // Configure the HTTP request pipeline.
+            app.UseStaticFiles();
 
             await AppDbInitializer.SeedAsync(app);
 
@@ -191,7 +188,10 @@ namespace PL
                     latitude: 34.0195,
                     longitude: -118.4912,
                     maxGuests: 6,
-                    userId: adminId
+                    userId: adminId,
+                    tags: new List<string> { "beach", "villa", "luxury" },//
+                    createdBy: "System Admin"//
+
                 );
                 listing1.Amenities.Add(wifiAmenity);
                 listing1.Amenities.Add(poolAmenity);
@@ -207,7 +207,9 @@ namespace PL
                     latitude: 40.7128,
                     longitude: -74.0060,
                     maxGuests: 4,
-                    userId: adminId
+                    userId: adminId,
+                    tags: new List<string> { "city", "apartment", "modern" },//
+                    createdBy: "System Admin"//
                 );
                 listing2.Amenities.Add(wifiAmenity);
                 listing2.Amenities.Add(acAmenity);
