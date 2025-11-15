@@ -1,3 +1,5 @@
+using BLL.Common;
+using DAL.Common;
 using DAL.Database;
 using DAL.Entities;
 using DAL.Enum;
@@ -28,20 +30,13 @@ namespace PL
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-            // Repositories
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IListingRepository, ListingRepository>();
-            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-            builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
-            builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
-            builder.Services.AddScoped<IKeywordRepository, KeywordRepository>();
+            // add modular in program
+            builder.Services.AddBuissinesInBLL();
+            builder.Services.AddBuissinesInDAL();
+
+
+
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
