@@ -60,6 +60,20 @@ namespace PL.Controllers
             }
         }
 
+        [HttpPost("send-message/{userId}")]
+        public async Task<ActionResult<MessageVM>> SendMessage([FromRoute] Guid userId, [FromBody] CreateMessageVM messageVm)
+        {
+            try
+            {
+                var message = await _chatService.SendMessageAsync(userId, messageVm);
+                return Ok(message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpGet("unread-count/{userId}")]
         public async Task<ActionResult<int>> GetUnreadCount(Guid userId)
         {
