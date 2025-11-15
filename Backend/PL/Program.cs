@@ -2,6 +2,13 @@ using BLL.Services;
 using BLL.Services.Abstractions;
 using BLL.Services.Impelementation;
 using PL.Hubs;
+using DAL.Database;
+using DAL.Entities;
+using DAL.Enum;
+using DAL.Repo.Abstraction;
+using DAL.Repo.Implementation;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 using BLL.AutoMapper;
 using BLL.Common;
