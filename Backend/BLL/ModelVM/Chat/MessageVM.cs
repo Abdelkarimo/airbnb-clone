@@ -7,15 +7,15 @@ namespace BLL.ModelVM.Chat
         public Guid SenderId { get; set; }
         public Guid ReceiverId { get; set; }
         public string Content { get; set; }
-        public DateTime Timestamp { get; set; }
+        public DateTime SentAt { get; set; }  // Changed from Timestamp to SentAt
         public bool IsRead { get; set; }
 
-        // Additional properties for frontend display (not in entity)
+        // Frontend display properties
         public string SenderName { get; set; }
         public string ReceiverName { get; set; }
         public string SenderProfileImg { get; set; }
         public string ReceiverProfileImg { get; set; }
-        public bool IsOwnMessage { get; set; } // Computed property for frontend
+        public bool IsOwnMessage { get; set; }
 
     }
 }

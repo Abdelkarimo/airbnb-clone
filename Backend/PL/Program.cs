@@ -1,6 +1,5 @@
+using BLL.Services;
 using BLL.Services.Abstractions;
-using BLL.Services.Impelementation;
-using PL.Hubs;
 using DAL.Database;
 using DAL.Entities;
 using DAL.Enum;
@@ -8,6 +7,7 @@ using DAL.Repo.Abstraction;
 using DAL.Repo.Implementation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PL.Hubs;
 
 namespace PL
 {
@@ -55,11 +55,13 @@ namespace PL
             // Add SignalR and Chat Service
             builder.Services.AddSignalR();
 
-            
 
-            
-            
-            
+
+
+
+
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
             builder.Services.AddScoped<IChatService, ChatService>();
 
             // Configure CORS for Angular
@@ -133,7 +135,7 @@ namespace PL
                 );
 
                 admin = User.Create("System Admin", UserRole.Admin);
-
+                
 
                 // Set Identity fields manually
                 admin.Email = adminEmail;

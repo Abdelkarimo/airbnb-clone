@@ -28,44 +28,68 @@ namespace PL.Hubs
         {
             try
             {
-                // Save message
-                var savedMessage = await _chatService.SendMessageAsync(senderId, messageVm);
+                Console.WriteLine($"SendMessage called - Sender: {senderId}, Receiver: {messageVm.ReceiverId}");
 
-                // Prepare message for receiver
+                // 1. Save message to database
+                var savedMessage = await _chatService.SendMessageAsync(senderId, messageVm);
+                Console.WriteLine($"Message saved with ID: {savedMessage.Id}");
+
+                // 2. Get user details for proper display
+                var sender = await _chatService.GetUserByIdAsync(senderId);
+                var receiver = await _chatService.GetUserByIdAsync(messageVm.ReceiverId);
+
+                // 3. Prepare message for RECEIVER
                 var receiverMessage = new MessageVM
                 {
                     Id = savedMessage.Id,
                     SenderId = savedMessage.SenderId,
                     ReceiverId = savedMessage.ReceiverId,
                     Content = savedMessage.Content,
-                    Timestamp = savedMessage.Timestamp,
-                    IsRead = false,
-                    SenderName = savedMessage.SenderName,
-                    ReceiverName = savedMessage.ReceiverName,
-                    SenderProfileImg = savedMessage.SenderProfileImg,
-                    ReceiverProfileImg = savedMessage.ReceiverProfileImg,
-                    IsOwnMessage = false
+                    SentAt = savedMessage.SentAt,
+                    IsRead = savedMessage.IsRead,
+                    SenderName = sender?.FullName ?? "Unknown User",
+                    ReceiverName = receiver?.FullName ?? "Unknown User",
+                    SenderProfileImg = sender?.ProfileImg ?? "",
+                    ReceiverProfileImg = receiver?.ProfileImg ?? "",
+                    IsOwnMessage = false // Receiver sees this as someone else's message
                 };
 
-                // Send to receiver if online
+                // 4. Send to receiver if online
                 if (_userConnections.TryGetValue(messageVm.ReceiverId, out var receiverConnectionId))
                 {
                     await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", receiverMessage);
-                    Console.WriteLine($"Message sent to receiver {messageVm.ReceiverId}");
+                    Console.WriteLine($"Message delivered to receiver: {messageVm.ReceiverId}");
                 }
                 else
                 {
-                    Console.WriteLine($"Receiver {messageVm.ReceiverId} is offline");
+                    Console.WriteLine($"Receiver offline: {messageVm.ReceiverId}");
                 }
 
-                // Send confirmation to sender
-                await Clients.Caller.SendAsync("MessageSent", savedMessage);
-                Console.WriteLine($"Message sent from {senderId} to {messageVm.ReceiverId}");
+                // 5. Send confirmation to SENDER
+                var senderMessage = new MessageVM
+                {
+                    Id = savedMessage.Id,
+                    SenderId = savedMessage.SenderId,
+                    ReceiverId = savedMessage.ReceiverId,
+                    Content = savedMessage.Content,
+                    SentAt = savedMessage.SentAt,
+                    IsRead = savedMessage.IsRead,
+                    SenderName = "You", // Sender sees themselves as "You"
+                    ReceiverName = receiver?.FullName ?? "Unknown User",
+                    SenderProfileImg = sender?.ProfileImg ?? "",
+                    ReceiverProfileImg = receiver?.ProfileImg ?? "",
+                    IsOwnMessage = true // Sender sees this as their own message
+                };
+
+                await Clients.Caller.SendAsync("MessageSent", senderMessage);
+                Console.WriteLine($"Message sent confirmation to sender: {senderId}");
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending message: {ex.Message}");
-                await Clients.Caller.SendAsync("MessageError", "Failed to send message");
+                Console.WriteLine($"Error in SendMessage: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                await Clients.Caller.SendAsync("MessageError", $"Failed to send message: {ex.Message}");
             }
         }
 
