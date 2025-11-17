@@ -24,5 +24,14 @@
                 .Where(b => b.BookingStatus == BookingStatus.Active)
                 .ToListAsync();
         }
+
+        public async Task<bool> IsListingAvailableAsync(int listingId, DateTime checkIn, DateTime checkOut)
+        {
+            return !await _context.Bookings
+             .AnyAsync(b =>
+                 b.ListingId == listingId &&
+                 b.BookingStatus == BookingStatus.Active &&
+                 (checkIn < b.CheckOutDate && checkOut > b.CheckInDate));
+        }
     }
 }

@@ -64,5 +64,10 @@
             PaymentStatus = paymentStatus;
             BookingStatus = bookingStatus;
         }
+        //IsOverlapping To prevent overlapping bookings 
+        public bool IsOverlapping(DateTime checkIn,  DateTime checkOut)
+        {
+            return checkIn < CheckOutDate && checkOut < CheckInDate;
+        }
     }
 }

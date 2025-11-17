@@ -5,5 +5,6 @@
         Task<IEnumerable<Booking>> GetBookingsByGuestAsync(Guid guestId);                // Bookings of a guest
         Task<IEnumerable<Booking>> GetBookingsByListingAsync(int listingId);             // Bookings for a listing
         Task<IEnumerable<Booking>> GetActiveBookingsAsync();                             // All active bookings  
+        Task<bool> IsListingAvailableAsync(int listingId, DateTime checkIn, DateTime checkOut);
     }
 }

@@ -4,6 +4,11 @@
     {
         public PaymentRepository(AppDbContext context) : base(context) { }
 
+        public async Task<Payment?> GetPaymentByTransactionIdAsync(string transactionId)
+        {
+            return await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+        }
+
         public async Task<IEnumerable<Payment>> GetPaymentsByBookingAsync(int bookingId)
         {
             return await _context.Payments
@@ -17,5 +22,6 @@
                 .Where(p => p.Status == PaymentStatus.Success)
                 .ToListAsync();
         }
+
     }
 }

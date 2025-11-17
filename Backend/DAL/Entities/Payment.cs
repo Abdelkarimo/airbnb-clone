@@ -9,6 +9,7 @@
         public string TransactionId { get; private set; } = null!;
         public PaymentStatus? Status { get; private set; }
         public DateTime PaidAt { get; private set; }
+        public string? GatewayResponse { get; set; }
 
         // Relationships
         public Booking Booking { get; private set; } = null!;
@@ -48,6 +49,10 @@
             TransactionId = transactionId;
             Status = status;
             PaidAt = paidAt;
+        }
+        public void AttachGatewayResponse(string gatewayResponse)
+        {
+            GatewayResponse = gatewayResponse;
         }
     }
 }
