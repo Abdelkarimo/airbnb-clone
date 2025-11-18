@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using BLL.ModelVM.LIstingVM;
-using DAL.Entities;
+﻿
+
+
 
 namespace BLL.AutoMapper
 {

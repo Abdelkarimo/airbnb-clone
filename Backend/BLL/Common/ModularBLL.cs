@@ -1,10 +1,11 @@
-﻿namespace BLL.Common
+﻿
+namespace BLL.Common
 {
     public static class ModularBLL
     {
         public static IServiceCollection AddBuissinesInBLL(this IServiceCollection services)
         {
-            //notifiaction
+            // notification
             services.AddScoped<INotificationService, NotificationService>();
             // messages
             services.AddScoped<IMessageService, MessageService>();
@@ -15,6 +16,10 @@
             // admin
             services.AddScoped<IAdminService, AdminService>();
             
+            // bookings & payments
+            services.AddScoped<IBookingService, BookingService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+
             services.AddAutoMapper(x => x.AddProfile(new DomainProfile()));
             // Token service
             services.AddSingleton<ITokenService, TokenService>();

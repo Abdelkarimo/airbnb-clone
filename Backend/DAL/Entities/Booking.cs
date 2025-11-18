@@ -21,7 +21,7 @@
         private Booking() { }
 
         // Create a booking
-        internal static Booking Create(
+        public static Booking Create(
             int listingId,
             Guid guestId,
             DateTime checkInDate,
@@ -45,7 +45,7 @@
         }
 
         // Update existing booking
-        internal void Update(
+        public void Update(
             DateTime checkInDate,
             DateTime checkOutDate,
             decimal totalPrice,

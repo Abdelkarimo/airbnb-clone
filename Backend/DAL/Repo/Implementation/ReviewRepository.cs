@@ -1,6 +1,4 @@
-﻿using DAL.Entities;
-using DAL.Repo.Abstraction;
-using Microsoft.EntityFrameworkCore;
+﻿
 
 namespace DAL.Repo.Implementation
 {

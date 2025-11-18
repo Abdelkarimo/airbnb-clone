@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using DAL.Entities;
-
+﻿
 namespace DAL.Configurations
 {
     public class ListingImageConfiguration : IEntityTypeConfiguration<ListingImage>

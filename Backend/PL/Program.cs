@@ -1,71 +1,72 @@
-using BLL.Common;
-using DAL.Common;
-using DAL.Database;
-using DAL.Entities;
-using DAL.Enum;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.Facebook;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using PL.Hubs;
-using BLL.AutoMapper;
-
 
 namespace PL
 {
-    public class Program 
+    // Program: application entrypoint and host configuration
+    public class Program
     {
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 1. ????? ????? CORS
+            // Preserve original incoming JWT claims (do not map 'sub' to name)
+            JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+            // ----------------------------------------------------------------------------
+            // CORS
+            // Allow the SPA frontend (Angular on localhost:4200) to access this API
+            // and allow credentials for SignalR connections.
+            // ----------------------------------------------------------------------------
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200") // ??? ?????? ???? Angular
+                    policy.WithOrigins("http://localhost:4200")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // ?? ??????? SignalR
+                          .AllowCredentials(); // required for SignalR when using cookies or auth headers
                 });
             });
 
-            
-
-            // DbContext
+            // ----------------------------------------------------------------------------
+            // Database
+            // Register the EF Core DbContext using SQL Server (connection string from config)
+            // ----------------------------------------------------------------------------
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Configure Identity integration (creates all authentication tables)
+            // ----------------------------------------------------------------------------
+            // Identity (ASP.NET Core Identity)
+            // Configures user/role stores and default token providers
+            // ----------------------------------------------------------------------------
             builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
             {
-                // optional basic config (you can change later)
+                // Basic password policy (can be tightened later)
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-            // External authentication providers - register only when credentials exist
-            // JWT as default auth scheme
+            // ----------------------------------------------------------------------------
+            // Authentication: JWT is the default scheme. External providers (Google, Facebook)
+            // are added only when credentials exist in configuration.
+            // ----------------------------------------------------------------------------
             var authBuilder = builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             });
-            
-            // Configure JWT validation
+
+            // Configure JWT validation parameters
             var jwtKey = builder.Configuration["Jwt:Key"];
             var jwtIssuer = builder.Configuration["Jwt:Issuer"];
             var jwtAudience = builder.Configuration["Jwt:Audience"];
+
             if (!string.IsNullOrWhiteSpace(jwtKey))
             {
                 authBuilder.AddJwtBearer(options =>
                 {
+                    options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
@@ -75,25 +76,35 @@ namespace PL
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(2)
+                        ClockSkew = TimeSpan.FromMinutes(2),
+
+                        // Keep original claim types for name/role
+                        NameClaimType = JwtRegisteredClaimNames.Sub,
+                        RoleClaimType = ClaimTypes.Role
                     };
-                    // Allow SignalR to read token from querystring for hubs
+
+                    // Allow SignalR hubs to receive the access token from the query string
                     options.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
                         {
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/notificationsHub") || path.StartsWithSegments("/messagesHub")))
+
+                            // If the request is for one of the hubs, read token from query string
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/notificationsHub") || path.StartsWithSegments("/messagesHub")))
                             {
                                 context.Token = accessToken;
                             }
+
                             return Task.CompletedTask;
                         }
                     };
                 });
             }
 
+            // Google external authentication (if configured)
             var googleId = builder.Configuration["Authentication:Google:ClientId"];
             var googleSecret = builder.Configuration["Authentication:Google:ClientSecret"];
             if (!string.IsNullOrWhiteSpace(googleId) && !string.IsNullOrWhiteSpace(googleSecret))
@@ -105,6 +116,7 @@ namespace PL
                 });
             }
 
+            // Facebook external authentication (if configured)
             var fbId = builder.Configuration["Authentication:Facebook:AppId"];
             var fbSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
             if (!string.IsNullOrWhiteSpace(fbId) && !string.IsNullOrWhiteSpace(fbSecret))
@@ -116,37 +128,48 @@ namespace PL
                 });
             }
 
-            // add modular in program
-            // ensure DAL registrations occur before BLL so required repos are available
+            // ----------------------------------------------------------------------------
+            // Application services registration (modular)
+            // Ensure DAL registrations before BLL so repositories are available.
+            // ----------------------------------------------------------------------------
             builder.Services.AddBuissinesInDAL();
             builder.Services.AddBuissinesInBLL();
-            // safe-guard: ensure IAdminRepository is registered (some extension variants may not register it)
+
+            // Explicit service registrations as safeguards
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+            // Ensure IAdminRepository registration (some extension variants may not register it)
             builder.Services.AddScoped<DAL.Repo.Abstraction.IAdminRepository, DAL.Repo.Implementation.AdminRepository>();
-            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ListingProfile>());//AutoMapperForListing BLL
 
-            
+            // AutoMapper profiles (e.g. ListingProfile in BLL)
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ListingProfile>());
 
-            
-
-
-
-
+            // MVC controllers
             builder.Services.AddControllers();
 
-            //signalR
+            // SignalR for real-time features (notifications, messages)
             builder.Services.AddSignalR();
 
+            // Swagger/OpenAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // ----------------------------------------------------------------------------
+            // Build the app and configure middleware pipeline
+            // ----------------------------------------------------------------------------
             var app = builder.Build();
 
+            // Enable CORS policy
             app.UseCors("AllowFrontend");
 
+            // Serve static files from wwwroot
             app.UseStaticFiles();
 
+            // Seed initial data (roles, admin user, sample data)
             await AppDbInitializer.SeedAsync(app);
 
+            // Enable Swagger in development
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -155,21 +178,22 @@ namespace PL
 
             app.UseHttpsRedirection();
 
-            // Identity middlewares
+            // Authentication & Authorization middlewares
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // Map API controllers
             app.MapControllers();
 
-            //signal R
+            // Map SignalR hubs
             app.MapHub<NotificationHub>("/notificationsHub");
             app.MapHub<MessageHub>("/messagesHub");
-           
 
             app.Run();
         }
     }
 
+    // AppDbInitializer: handles seeding initial data into the database
     public static class AppDbInitializer
     {
         public static async Task SeedAsync(IApplicationBuilder app)
@@ -179,29 +203,32 @@ namespace PL
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // -----------------
             // Roles
+            // -----------------
             string[] roles = { "Admin", "Host", "Guest" };
             foreach (var roleName in roles)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
+                {
                     await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+                }
             }
 
+            // -----------------
             // Admin user
+            // -----------------
             var adminEmail = "admin@airbnbclone.com";
             var admin = await userManager.FindByEmailAsync(adminEmail);
             if (admin == null)
             {
-                // Create Admin user
+                // Create Admin user using domain factory
                 admin = User.Create(
                     fullName: "System Admin",
                     role: UserRole.Admin
                 );
 
-                admin = User.Create("System Admin", UserRole.Admin);
-
-
-                // Set Identity fields manually
+                // Set Identity fields
                 admin.Email = adminEmail;
                 admin.UserName = adminEmail;
                 admin.NormalizedEmail = adminEmail.ToUpper();
@@ -214,7 +241,9 @@ namespace PL
                 }
             }
 
+            // -----------------
             // Sample Amenities
+            // -----------------
             if (!context.Amenities.Any())
             {
                 var wifi = Amenity.Create("Wi-Fi");
@@ -224,7 +253,9 @@ namespace PL
                 context.Amenities.AddRange(wifi, pool, ac);
             }
 
+            // -----------------
             // Sample Keywords
+            // -----------------
             if (!context.Keywords.Any())
             {
                 var beach = Keyword.Create("Beach");
@@ -235,7 +266,9 @@ namespace PL
 
             await context.SaveChangesAsync();
 
+            // -----------------
             // Sample Listings
+            // -----------------
             if (!context.Listings.Any())
             {
                 var adminId = admin.Id;
@@ -248,38 +281,39 @@ namespace PL
                 var beachKeyword = context.Keywords.First(k => k.Word == "Beach");
                 var luxuryKeyword = context.Keywords.First(k => k.Word == "Luxury");
 
-                // Listing 1
+                // Listing1
                 var listing1 = Listing.Create(
                     title: "Beach Villa",
                     description: "Luxury villa near the beach.",
-                    pricePerNight: 250,
+                    pricePerNight:250,
                     location: "California",
-                    latitude: 34.0195,
+                    latitude:34.0195,
                     longitude: -118.4912,
-                    maxGuests: 6,
+                    maxGuests:6,
                     userId: adminId,
-                    tags: new List<string> { "beach", "villa", "luxury" },//
-                    createdBy: "System Admin"//
-
+                    tags: new List<string> { "beach", "villa", "luxury" },
+                    createdBy: "System Admin"
                 );
+
                 listing1.Amenities.Add(wifiAmenity);
                 listing1.Amenities.Add(poolAmenity);
                 listing1.Keywords.Add(beachKeyword);
                 listing1.Images.Add(ListingImage.Create(listing1.Id, "https://example.com/beach-villa.jpg"));
 
-                // Listing 2
+                // Listing2
                 var listing2 = Listing.Create(
                     title: "City Apartment",
                     description: "Modern apartment in the city center.",
-                    pricePerNight: 120,
+                    pricePerNight:120,
                     location: "New York",
-                    latitude: 40.7128,
+                    latitude:40.7128,
                     longitude: -74.0060,
-                    maxGuests: 4,
+                    maxGuests:4,
                     userId: adminId,
-                    tags: new List<string> { "city", "apartment", "modern" },//
-                    createdBy: "System Admin"//
+                    tags: new List<string> { "city", "apartment", "modern" },
+                    createdBy: "System Admin"
                 );
+
                 listing2.Amenities.Add(wifiAmenity);
                 listing2.Amenities.Add(acAmenity);
                 listing2.Keywords.Add(luxuryKeyword);

@@ -1,10 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Text.Json;
-using DAL.Entities;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 
 namespace DAL.Configurations
 {

@@ -1,9 +1,5 @@
-using BLL.Services.Abstractions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
+
 
 namespace BLL.Services.Impelementation
 {
@@ -29,7 +25,9 @@ namespace BLL.Services.Impelementation
  var claims = new List<Claim>
  {
  new Claim("sub", userId.ToString()),
- new Claim(ClaimTypes.Role, role)
+ // Include both standard role claim and 'role' so RoleClaimType mapping works regardless of configuration
+ new Claim(ClaimTypes.Role, role),
+ new Claim("role", role)
  };
 
  if (orderId.HasValue) claims.Add(new Claim("orderId", orderId.Value.ToString()));

@@ -1,5 +1,3 @@
-using BLL.ModelVM.Message;
-using BLL.ModelVM.Response;
 
 namespace BLL.Services.Abstractions
 {
