@@ -1,5 +1,7 @@
+import { Component } from '@angular/core';
 import { Routes } from '@angular/router';
 import { Home } from './app/features/home-page/home/home';
+import { Properties } from './app/features/properties/properties';
 import { ListingsList } from './app/features/listings/list/listing-list';
 import { ListingsCreateEdit } from './app/features/listings/create-edit/listings-create-edit';
 import { listingExistsGuard } from './app/features/listings/services/listing-exists.guard';
@@ -10,6 +12,7 @@ export const routes: Routes = [
   { path: 'home', component: Home },
   { path: '', pathMatch: 'full', redirectTo: 'home' },
   // { path: '**', redirectTo: 'home' },
+  { path: 'properties', component: Properties },
   {
     path: 'listings',
     children: [

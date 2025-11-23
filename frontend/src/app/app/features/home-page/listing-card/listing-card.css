@@ -1,69 +1,59 @@
-/* Card */
 .listing-card {
-  width: 280px; /* smaller */
-  background: rgba(255, 255, 255, 0.15);
+  width: 240px;
+  background: hsla(48, 27%, 63%, 0.322);
   backdrop-filter: blur(12px);
-  border-radius: 20px;
   overflow: hidden;
   transition: transform 0.2s ease;
 }
 
 .listing-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
 }
 
-/* Image */
 .card-img-top {
-  height: 220px; /* smaller */
+  height: 180px;
   object-fit: cover;
+  margin-bottom: 0.2em;
 }
 
-/* Tags */
-.tag-pill {
-  background: rgba(255, 255, 255, 0.25);
-  color: #333;
-  padding: 4px 10px;
-  font-size: 0.65rem;
-  border-radius: 20px;
+.badge {
+  display: inline-flex;
+  align-items: center;
+  /* background: rgba(255, 255, 255, 0.25); */
+  background: hsla(48, 27%, 63%, 0.322);
+  padding: 0.5em 1em;
+  border-radius: 0.6vw;
+  font-size: 0.75em;
+  color: #333333;
   backdrop-filter: blur(6px);
+  box-shadow: 0 0.2em 0.5em rgba(0, 0, 0, 0.4);
+  width: fit-content;
+  white-space: nowrap;
 }
 
-/* Rating pill */
-.rating-pill {
-  background: rgba(255, 255, 255, 0.25);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.65rem;
-  backdrop-filter: blur(6px);
+.rate {
+  font-size: 0.85em;
+  padding: 0.2em 0.3em;
+  color: rgb(255, 253, 240);
 }
 
-/* Top rated pill */
-.top-rated-pill {
-  background: rgba(246, 246, 246, 0.6);
-  color: #333;
-  padding: 4px 10px;
-  font-size: 0.65rem;
-  border-radius: 20px;
+.more {
+  margin-top: -1em;
 }
 
-/* Dots */
-.dots .dot {
-  height: 6px;
-  width: 6px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
+.bi-star-fill {
+  font-size: 0.8em;
+  margin-right: 0.4em;
 }
 
-.dots .dot.active {
-  background: #ffffff;
+.bi-arrow-up-right-circle-fill {
+  font-size: 2.5em;
+  color: rgb(255, 253, 240, 0.76);
 }
 
 /* Responsive */
 @media (max-width: 576px) {
   .listing-card {
-    width: 90%;
-  }
-  .card-img-top {
-    height: 180px;
+    width: 60%;
   }
 }

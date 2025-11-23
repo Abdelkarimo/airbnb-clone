@@ -1,3 +1,24 @@
-.row{
-    margin-bottom: 2em;
+.row {
+    margin-bottom: 2.5em;
+}
+
+/* .col-6 {
+    position: relative;
+}
+
+.filters {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+} */
+
+h4 {
+    margin-bottom: 1em;
+    color: rgb(255, 253, 240);
+}
+
+.bi-caret-right-fill {
+    position: relative;
+    top: 0.12em;
 }
