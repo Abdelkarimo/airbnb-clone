@@ -18,7 +18,6 @@
             Notifications = new NotificationRepository(_context);
             ListingImages = new ListingImageRepository(_context);
             Amenities = new AmenityRepository(_context);
-            Keywords = new KeywordRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
@@ -30,8 +29,6 @@
         public INotificationRepository Notifications { get; private set; }
         public IListingImageRepository ListingImages { get; private set; }
         public IAmenityRepository Amenities { get; private set; }
-        public IKeywordRepository Keywords { get; private set; }
-
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
@@ -40,6 +37,23 @@
         public void Dispose()
         {
             _context.Dispose();
+        }
+
+        // New: transaction helper
+        public async Task ExecuteInTransactionAsync(Func<Task> operation)
+        {
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await operation();
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
         }
     }
 }

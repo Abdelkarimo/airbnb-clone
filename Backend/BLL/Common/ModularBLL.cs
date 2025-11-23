@@ -4,7 +4,7 @@
     {
         public static IServiceCollection AddBuissinesInBLL(this IServiceCollection services)
         {
-            //notifiaction
+            // notification
             services.AddScoped<INotificationService, NotificationService>();
             // messages
             services.AddScoped<IMessageService, MessageService>();
@@ -14,11 +14,25 @@
             services.AddScoped<IReviewService, ReviewService>();
             // admin
             services.AddScoped<IAdminService, AdminService>();
+            
+            services.AddScoped<IListingService, ListingService>();
+            services.AddScoped<IListingImageService, ListingImageService>();
+
+            services.AddScoped<IMapService, MapService>();
+            services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
+            // bookings & payments
+            services.AddScoped<IBookingService, BookingService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+
             // email
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<EmailMappingService>();
 
             services.AddAutoMapper(x => x.AddProfile(new DomainProfile()));
+            // Token service
+            services.AddSingleton<ITokenService, TokenService>();
+            // Ensure IdentityService is registered with token service injected
+            //services.AddScoped<IIdentityService, IdentityService>();
             return services;
         }
     }

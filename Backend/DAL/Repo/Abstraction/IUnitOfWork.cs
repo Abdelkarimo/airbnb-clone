@@ -11,9 +11,10 @@
         INotificationRepository Notifications { get; }
         IListingImageRepository ListingImages { get; }
         IAmenityRepository Amenities { get; }
-        IKeywordRepository Keywords { get; }
-
         // Commits all changes in one transaction
         Task<int> SaveChangesAsync(); 
+
+        // Execute multiple operations within a single database transaction
+        Task ExecuteInTransactionAsync(Func<Task> operation);
     }
 }

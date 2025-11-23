@@ -1,15 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using PL.Hubs;
-using System.Runtime.InteropServices;
-using System.Security.Claims;
-
-namespace PL.Controllers
+﻿namespace PL.Controllers
 {
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
     [ApiController]
-   // [Authorize]   // Require JWT
-    public class NotificationController : ControllerBase
+    [Authorize]
+    public class NotificationController : BaseController
     {
         private readonly INotificationService _notificationService;
         private readonly IHubContext<NotificationHub> _hub;
@@ -21,24 +15,13 @@ namespace PL.Controllers
             _hub = hub;
         }
 
-        // Helper to read user id from token
-        private Guid GetUserId()
-        {
-            //return Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-            return Guid.Parse("70188af8-4575-49d8-5822-08de25168bf9");
-        }
-        //--------------------------- GET ALL ------------------------------
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var result = await _notificationService.GetAllAsync();
-            return Ok(result);
-        }
-        // --------------------------- CREATE -------------------------------
+        //--------------------------- CREATE -------------------------------
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateNotificationVM model)
         {
-            model.UserId = GetUserId();
+            var uid = GetUserIdFromClaims();
+            if (uid == null) return Unauthorized();
+            model.UserId = uid.Value; // set server-side
             var result = await _notificationService.CreateAsync(model);
 
             if (result.IsHaveErrorOrNo )
@@ -63,6 +46,14 @@ namespace PL.Controllers
             return Ok(result);
         }
 
+        // --------------------------- GET ALL ------------------------------
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _notificationService.GetAllAsync();
+            return Ok(result);
+        }
+
         // --------------------------- GET BY ID ----------------------------
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
@@ -79,18 +70,20 @@ namespace PL.Controllers
         [HttpGet("user")]
         public async Task<IActionResult> GetForCurrentUser()
         {
-            var userId = GetUserId();
-            var result = await _notificationService.GetByUserIdAsync(userId);
+            var userId = GetUserIdFromClaims();
+            if (userId == null) return Unauthorized();
+            var result = await _notificationService.GetByUserIdAsync(userId.Value);
 
             return Ok(result);
         }
 
         // --------------------------- PAGED --------------------------------
         [HttpGet("paged")]
-        public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetPaged([FromQuery] int page =1, [FromQuery] int pageSize =10)
         {
-            var userId = GetUserId();
-            var result = await _notificationService.GetPagedAsync(userId, page, pageSize);
+            var userId = GetUserIdFromClaims();
+            if (userId == null) return Unauthorized();
+            var result = await _notificationService.GetPagedAsync(userId.Value, page, pageSize);
 
             return Ok(result);
         }
@@ -99,8 +92,9 @@ namespace PL.Controllers
         [HttpGet("unread")]
         public async Task<IActionResult> GetUnread()
         {
-            var userId = GetUserId();
-            var result = await _notificationService.GetUnreadAsync(userId);
+            var userId = GetUserIdFromClaims();
+            if (userId == null) return Unauthorized();
+            var result = await _notificationService.GetUnreadAsync(userId.Value);
 
             return Ok(result);
         }
@@ -121,8 +115,9 @@ namespace PL.Controllers
         [HttpPut("read-all")]
         public async Task<IActionResult> MarkAllAsRead()
         {
-            var userId = GetUserId();
-            var result = await _notificationService.MarkAllAsReadAsync(userId);
+            var userId = GetUserIdFromClaims();
+            if (userId == null) return Unauthorized();
+            var result = await _notificationService.MarkAllAsReadAsync(userId.Value);
 
             if (result.IsHaveErrorOrNo)
                 return BadRequest(result);
@@ -132,7 +127,7 @@ namespace PL.Controllers
 
         // --------------------------- SEND PENDING (Cron / Background Job) --
         [HttpPost("send-pending")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<IActionResult> SendPending()
         {
             var result = await _notificationService.SendPendingNotificationsAsync();
