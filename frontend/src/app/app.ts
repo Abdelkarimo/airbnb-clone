@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Footer } from "./app/shared/components/footer/footer";
-import { Navbar } from "./app/shared/components/navbar/navbar";
-import { NotificationHub } from './app/core/services/notification-hub';
-import { NotificationStoreService } from './app/core/services/notification-store';
+import { Footer } from "./shared/components/footer/footer";
+import { Navbar } from "./shared/components/navbar/navbar";
+import { NotificationHub } from './core/services/notification-hub';
+import { NotificationStoreService } from './core/services/notification-store';
 
 @Component({
   selector: 'app-root',

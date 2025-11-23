@@ -14,7 +14,10 @@
             services.AddScoped<IReviewService, ReviewService>();
             // admin
             services.AddScoped<IAdminService, AdminService>();
-            
+            // email
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<EmailMappingService>();
+
             services.AddAutoMapper(x => x.AddProfile(new DomainProfile()));
             return services;
         }

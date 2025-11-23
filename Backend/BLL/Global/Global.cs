@@ -14,3 +14,12 @@ global using BLL.Services.Impelementation;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.AspNetCore.Http;
 global using System.ComponentModel.DataAnnotations;
+
+//email service
+global using BLL.ModelVM.Email;
+global using MailKit.Net.Smtp;
+global using MailKit.Security;
+global using Microsoft.Extensions.Configuration;
+global using MimeKit;
+
+
