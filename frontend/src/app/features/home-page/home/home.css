@@ -1,0 +1,30 @@
+.row {
+    margin-bottom: 2.5em;
+}
+
+.col-6 {
+    position: relative;
+}
+
+.filters {
+    position: absolute;
+    bottom: 0;
+    left: 5%;
+    width: 90%;
+    text-align: center;
+}
+
+h5 {
+    margin: 1em 0em;
+}
+
+.bi-arrow-right-short {
+    position: relative;
+    top: 0.12em;
+}
+
+.listings-row {
+    background: rgba(245, 245, 220, 0.082);
+    border-radius: 1.5vw;
+    padding: 0em 1em 1.5em 1.5em;
+}
