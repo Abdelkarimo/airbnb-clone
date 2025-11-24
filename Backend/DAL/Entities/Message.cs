@@ -7,7 +7,7 @@
         public Guid ReceiverId { get; private set; }
         public string Content { get; private set; } = null!;
         public DateTime SentAt { get; private set; }
-        public bool IsRead { get; private set; }
+        public bool IsRead { get; set; }
 
         // Relationships
         public User Sender { get; private set; } = null!;

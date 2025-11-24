@@ -1,53 +1,55 @@
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { Subject } from 'rxjs';
-import { NotificationDto } from '../models/notification';
+import { MessageDto } from '../models/message';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
-export class NotificationHub {
+export class MessageHub {
   private hubConnection!: signalR.HubConnection;
-  public notificationReceived = new Subject<NotificationDto>();
+  public messageReceived = new Subject<MessageDto>();
+  public messageRead = new Subject<{ messageId: number; readerId: string }>();
 
   constructor(private auth: AuthService) { }
 
   public startConnection() {
-    // Only start the hub when user is authenticated
     const isAuth = this.auth.isAuthenticated();
-    console.log('NotificationHub.startConnection: isAuthenticated=', isAuth);
+    console.log('MessageHub.startConnection: isAuthenticated=', isAuth);
     if (!isAuth) {
-      console.log('NotificationHub: user not authenticated — skipping start');
+      console.log('MessageHub: user not authenticated — skipping start');
       return;
     }
 
     const payload = this.auth.getPayload() || {};
     const userID = payload['sub'] || payload['id'] || payload['nameid'] || payload['userId'] || '';
     const token = this.auth.getToken() || '';
-    console.log('NotificationHub: starting for userID=', userID, ' tokenPresent=', !!token);
+    console.log('MessageHub: starting for userID=', userID, ' tokenPresent=', !!token);
 
-    // if a connection already exists, stop it first
     if (this.hubConnection) {
       try { this.hubConnection.stop(); } catch {}
       this.hubConnection = undefined as any;
     }
 
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`http://localhost:5235/notificationsHub?userID=${userID}`, {
+      .withUrl(`http://localhost:5235/messagesHub?userID=${userID}`, {
         accessTokenFactory: () => this.auth.getToken() || ''
       })
       .withAutomaticReconnect()
       .build();
 
-    // attach handlers before starting
-    this.hubConnection.on('ReceiveNotification', (notification: NotificationDto) => {
-      console.log('Notification received from hub', notification);
-      this.notificationReceived.next(notification);
+    this.hubConnection.on('ReceiveMessage', (message: MessageDto) => {
+      console.log('Message received from hub', message);
+      this.messageReceived.next(message);
+    });
+    this.hubConnection.on('MessageRead', (payload: any) => {
+      console.log('MessageRead event from hub', payload);
+      this.messageRead.next({ messageId: payload.messageId, readerId: String(payload.readerId) });
     });
 
     this.hubConnection.start()
-      .then(() => console.log('NotificationHub: SignalR connected'))
+      .then(() => console.log('MessageHub connected'))
       .catch(err => {
-        console.error('NotificationHub: SignalR connection error:', err);
+        console.error('MessageHub connection error:', err);
         setTimeout(() => this.startConnection(), 5000);
       });
   }
