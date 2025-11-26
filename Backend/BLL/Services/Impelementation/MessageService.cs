@@ -14,9 +14,13 @@ namespace BLL.Services.Impelementation
         {
             try
             {
-                var entity = await _uow.Messages.CreateAsync(senderId, model.ReceiverId, model.Content, DateTime.UtcNow, false);
-                // map back to vm
-                var mapped = _mapper.Map<CreateMessageVM>(entity);
+                // find receiver by user name
+                var receiver = await _uow.Users.GetByUserNameAsync(model.ReceiverUserName);
+                if (receiver == null) return Response<CreateMessageVM>.FailResponse("Receiver not found");
+
+                var entity = await _uow.Messages.CreateAsync(senderId, receiver.Id, model.Content, DateTime.UtcNow, false);
+                // map back to vm (include receiver username)
+                var mapped = new CreateMessageVM { ReceiverUserName = receiver.UserName ?? string.Empty, Content = entity.Content };
                 return Response<CreateMessageVM>.SuccessResponse(mapped);
             }
             catch (Exception ex)
@@ -36,6 +40,42 @@ namespace BLL.Services.Impelementation
             catch (Exception ex)
             {
                 return new Response<List<GetMessageVM>>(null, ex.Message, true);
+            }
+        }
+
+        public async Task<Response<List<ConversationVM>>> GetConversationsAsync(Guid userId)
+        {
+            try
+            {
+                var result = await _uow.Messages.GetConversationsAsync(userId);
+                var mapped = _mapper.Map<List<ConversationVM>>(result);
+                return new Response<List<ConversationVM>>(mapped, null, false);
+            }
+            catch (Exception ex)
+            {
+                return new Response<List<ConversationVM>>(null, ex.Message, true);
+            }
+        }
+
+        public async Task<DAL.Entities.User?> GetUserByUserNameAsync(string userName)
+        {
+            return await _uow.Users.GetByUserNameAsync(userName);
+        }
+
+        public async Task<Response<GetMessageVM>> MarkAsReadAsync(int messageId, Guid userId)
+        {
+            try
+            {
+                var msg = await _uow.Messages.MarkAsReadAsync(messageId);
+                if (msg == null) return Response<GetMessageVM>.FailResponse("Message not found");
+                // ensure only receiver can mark as read (or allow sender marking?)
+                if (msg.ReceiverId != userId) return Response<GetMessageVM>.FailResponse("Not authorized to mark this message");
+                var mapped = _mapper.Map<GetMessageVM>(msg);
+                return new Response<GetMessageVM>(mapped, null, false);
+            }
+            catch (Exception ex)
+            {
+                return Response<GetMessageVM>.FailResponse(ex.Message);
             }
         }
 

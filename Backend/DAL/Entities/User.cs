@@ -23,7 +23,7 @@
 
         private User() { }
 
-        // Create a user
+        // CreateImage a user
         public static User Create(
             string fullName,
             UserRole role = UserRole.Guest,

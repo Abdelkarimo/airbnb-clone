@@ -23,6 +23,15 @@ namespace PL.Controllers
             return Ok(result);
         }
 
+        [HttpGet("conversations")]
+        public async Task<IActionResult> GetConversations()
+        {
+            var myId = GetUserIdFromClaims();
+            if (myId == null) return Unauthorized();
+            var result = await _messageService.GetConversationsAsync(myId.Value);
+            return Ok(result);
+        }
+
         [HttpGet("unread")]
         public async Task<IActionResult> GetUnread()
         {
@@ -37,17 +46,19 @@ namespace PL.Controllers
         {
             var myId = GetUserIdFromClaims();
             if (myId == null) return Unauthorized();
-            var newModel = new CreateMessageVM { ReceiverId = model.ReceiverId, Content = model.Content };
-            // call service with sender id param
-            var result = await _messageService.CreateAsync(newModel, myId.Value);
+            // call service with sender id param; service will resolve receiver username
+            var result = await _messageService.CreateAsync(model, myId.Value);
             if (result.IsHaveErrorOrNo)
                 return BadRequest(result);
 
             // load created entity to get fields like Id / SentAt
-            var conv = await _messageService.GetConversationAsync(myId.Value, model.ReceiverId);
-            var last = conv.result?.OrderByDescending(m => m.SentAt).FirstOrDefault();
+            // need to find the receiver id by username
+            var receiver = await _messageService.GetUserByUserNameAsync(model.ReceiverUserName);
+            var receiverId = receiver?.Id;
+            var conv = receiverId.HasValue ? await _messageService.GetConversationAsync(myId.Value, receiverId.Value) : null;
+            var last = conv?.result?.OrderByDescending(m => m.SentAt).FirstOrDefault();
 
-            var connectionId = MessageHub.GetConnectionId(model.ReceiverId.ToString());
+            var connectionId = receiverId.HasValue ? MessageHub.GetConnectionId(receiverId.Value.ToString()) : null;
             if (!string.IsNullOrEmpty(connectionId) && last != null)
             {
                 await _hub.Clients.Client(connectionId)
@@ -63,6 +74,38 @@ namespace PL.Controllers
             }
 
             return Ok(result);
+        }
+
+        [HttpPut("{id}/read")]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var myId = GetUserIdFromClaims();
+            if (myId == null) return Unauthorized();
+
+            var result = await _messageService.MarkAsReadAsync(id, myId.Value);
+            if (result.IsHaveErrorOrNo) return BadRequest(result);
+
+            // notify sender that this message was read
+            var updated = result.result;
+            if (updated != null)
+            {
+                var connectionId = MessageHub.GetConnectionId(updated.SenderId.ToString());
+                if (!string.IsNullOrEmpty(connectionId))
+                {
+                    await _hub.Clients.Client(connectionId)
+                      .SendAsync("MessageRead", new { messageId = updated.Id, readerId = myId.Value });
+                }
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("userbyname/{username}")]
+        public async Task<IActionResult> GetUserByName(string username)
+        {
+            var user = await _messageService.GetUserByUserNameAsync(username);
+            if (user == null) return NotFound();
+            return Ok(new { id = user.Id, userName = user.UserName });
         }
     }
 }
