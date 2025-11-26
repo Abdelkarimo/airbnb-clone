@@ -38,20 +38,21 @@
                    .HasDefaultValue(true)
                    .IsRequired();
 
+            // Face Recognition Properties
+            builder.Property(u => u.FaceEncoding)
+                   .HasColumnType("nvarchar(max)")
+                   .IsRequired(false);
+
+            builder.Property(u => u.HasFaceData)
+                   .HasDefaultValue(false)
+                   .IsRequired();
+
             // Identity properties
             builder.Property(u => u.Email)
                    .HasMaxLength(100)
                    .IsRequired();
 
             builder.HasIndex(u => u.Email)
-                   .IsUnique();
-
-            // Configure UserName column and unique index
-            builder.Property(u => u.UserName)
-                   .HasMaxLength(100)
-                   .IsRequired();
-
-            builder.HasIndex(u => u.UserName)
                    .IsUnique();
 
             builder.Property(u => u.PhoneNumber)
@@ -86,7 +87,6 @@
                    .WithOne(r => r.Guest)
                    .HasForeignKey(r => r.GuestId)
                    .OnDelete(DeleteBehavior.NoAction);
-
 
             builder.HasMany(u => u.Notifications)
                    .WithOne(n => n.User)

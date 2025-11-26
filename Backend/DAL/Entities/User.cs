@@ -9,6 +9,10 @@
         public string? FirebaseUid { get; private set; }
         public bool IsActive { get; private set; }
 
+        // Face Recognition Data - stored as JSON string
+        public string? FaceEncoding { get; private set; }
+        public bool HasFaceData { get; private set; }
+
         // Relationships
         public ICollection<Listing> Listings { get; private set; } = new List<Listing>();
         public ICollection<Booking> Bookings { get; private set; } = new List<Booking>();
@@ -33,7 +37,8 @@
                 ProfileImg = profileImg,
                 FirebaseUid = firebaseUid,
                 DateCreated = DateTime.UtcNow,
-                IsActive = true
+                IsActive = true,
+                HasFaceData = false
             };
         }
 
@@ -60,9 +65,23 @@
             if (isActive.HasValue)
                 IsActive = isActive.Value;
         }
+
         internal void SetActive(bool active)
         {
             IsActive = active;
+        }
+
+        // Face Recognition Methods
+        public void SetFaceEncoding(string encoding)
+        {
+            FaceEncoding = encoding;
+            HasFaceData = !string.IsNullOrEmpty(encoding);
+        }
+
+        public void RemoveFaceEncoding()
+        {
+            FaceEncoding = null;
+            HasFaceData = false;
         }
     }
 }

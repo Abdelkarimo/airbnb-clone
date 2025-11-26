@@ -1,5 +1,4 @@
-﻿
-namespace BLL.Common
+﻿namespace BLL.Common
 {
     public static class ModularBLL
     {
@@ -15,10 +14,13 @@ namespace BLL.Common
             services.AddScoped<IReviewService, ReviewService>();
             // admin
             services.AddScoped<IAdminService, AdminService>();
-            
+
             // bookings & payments
             services.AddScoped<IBookingService, BookingService>();
             services.AddScoped<IPaymentService, PaymentService>();
+
+            // face recognition
+            services.AddScoped<IFaceRecognitionService, FaceRecognitionService>();
 
             services.AddAutoMapper(x => x.AddProfile(new DomainProfile()));
             // Token service
