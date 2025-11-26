@@ -244,7 +244,7 @@
                 updatedListing,
                 newMainImageUrl: null,
                 newAdditionalImages: newImageUrls,
-                imagesToRemove: vm.RemoveImageIds.ToList() , // Already handled above
+                imagesToRemove: vm.RemoveImageIds , // Already handled above
                 keywordNames: vm.Amenities,
                 ct: ct
             );
