@@ -2,22 +2,22 @@
    NAVBAR BASE STYLE
 =========================== */
 .navbar {
-    margin: 1vw 2vw;
+    margin: 1.2vw 2vw;
 }
 
 .navbar-brand {
     margin-right: 2em;
-    font-size: 1.5em;
+    font-size: 1.6em;
     color: rgb(255, 253, 240);
 }
 
 img {
     height: 30px;
-    /* margin-bottom: 4px; */
+    margin-bottom: 4px;
 }
 
 .nav-item {
-    font-size: 1.1em;
+    font-size: 1.2em;
     margin: 0 0.2em;
 }
 
@@ -29,11 +29,8 @@ img {
     display: none;
 }
 
-/* ===========================
-   LEFT / RIGHT BUTTONS STYLE
-=========================== */
 .left:hover,
-.right {
+.right{
     display: flex;
     align-items: center;
     justify-content: center;
@@ -91,9 +88,6 @@ img {
     right: -8px;
 }
 
-/* ===========================
-   NOTIFICATIONS DROPDOWN
-=========================== */
 .notification-bell {
     position: relative !important;
 }
@@ -216,12 +210,11 @@ img {
     transition: background 0.4s ease;
 }
 
-/* ===========================
-   MESSAGES DROPDOWN
-=========================== */
+
 .message-bell {
     position: relative;
     display: inline-block;
+    margin-left: 12px;
 }
 
 .message-bell .dropdown {

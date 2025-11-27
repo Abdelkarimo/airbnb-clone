@@ -19,6 +19,8 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     // provideClientHydration(withEventReplay()),
+    provideRouter(routes),
+    provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
   ]
 };
