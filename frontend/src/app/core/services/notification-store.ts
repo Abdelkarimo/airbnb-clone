@@ -21,7 +21,10 @@ export class NotificationStoreService {
     private hub: NotificationHub
   ) {
     // كل ما يجي notification من الـ hub نحدّث الستيت محليًا
-    this.hub.notificationReceived.subscribe(n => this.prependNotification(n));
+    this.hub.notificationReceived.subscribe(n => {
+      console.log('NotificationStore: Received notification from hub', n);
+      this.prependNotification(n);
+    });
   }
 
   // Load unread notifications for navbar dropdown
@@ -31,13 +34,27 @@ export class NotificationStoreService {
         map((res: any) => Array.isArray(res.result) ? res.result : []),
         tap((list: NotificationDto[]) => {
           this.notificationsSubject.next(list);
-          this.unreadCountSubject.next(list.length);
           console.log('Unread notifications loaded:', list.length);
         })
       )
       .subscribe({
-        next: (list: NotificationDto[]) => console.log('Unread notifications:', list),
+        next: () => this.loadUnreadCount(),
         error: err => console.error('Failed to load unread notifications', err)
+      });
+  }
+
+  // Load unread count from server
+  loadUnreadCount() {
+    this.api.getUnreadCount()
+      .pipe(
+        map((res: any) => res.result ?? 0)
+      )
+      .subscribe({
+        next: (count: number) => {
+          this.unreadCountSubject.next(count);
+          console.log('Unread count from server:', count);
+        },
+        error: err => console.error('Failed to load unread count', err)
       });
   }
 
@@ -61,12 +78,15 @@ export class NotificationStoreService {
   // Backward compatibility - loads unread by default
   loadInitial() {
     this.loadUnread();
+    this.loadUnreadCount();
   }
 
   private prependNotification(n: NotificationDto) {
     const current = this.notificationsSubject.value;
     this.notificationsSubject.next([n, ...current]);
-    this.unreadCountSubject.next(this.unreadCountSubject.value + (n.isRead ? 0 : 1));
+    const newUnreadCount = this.unreadCountSubject.value + (n.isRead ? 0 : 1);
+    this.unreadCountSubject.next(newUnreadCount);
+    console.log('NotificationStore: Prepended notification. New unread count:', newUnreadCount);
   }
 
   markAsRead(id: number) {
@@ -74,7 +94,8 @@ export class NotificationStoreService {
       tap(() => {
         const list = this.notificationsSubject.value.map(x => x.id === id ? { ...x, isRead: true } : x);
         this.notificationsSubject.next(list);
-        this.unreadCountSubject.next(list.filter(x => !x.isRead).length);
+        // Reload count from server to ensure accuracy
+        this.loadUnreadCount();
       })
     );
   }
@@ -84,6 +105,7 @@ export class NotificationStoreService {
       tap(() => {
         const list = this.notificationsSubject.value.map(x => ({ ...x, isRead: true }));
         this.notificationsSubject.next(list);
+        // Set count to 0 immediately
         this.unreadCountSubject.next(0);
       })
     );

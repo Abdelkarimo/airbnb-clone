@@ -36,7 +36,15 @@ namespace BLL.Services.Impelementation
                 await _uow.SaveChangesAsync();
 
                 // send notification to guest
-                await _notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM { UserId = booking.GuestId, Title = "Payment Initiated", Body = $"Payment of {amount:C} initiated for booking {booking.Id}", CreatedAt = DateTime.UtcNow });
+                await _notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM 
+                { 
+                    UserId = booking.GuestId, 
+                    Title = "Payment Initiated", 
+                    Body = $"Payment of {amount:C} initiated for your booking.", 
+                    CreatedAt = DateTime.UtcNow,
+                    ActionUrl = $"/payment/{booking.Id}",
+                    ActionLabel = "View Payment"
+                });
 
                 var vm = new CreatePaymentVM { BookingId = bookingId, Amount = amount, PaymentMethod = method };
                 return Response<CreatePaymentVM>.SuccessResponse(vm);
@@ -66,8 +74,24 @@ namespace BLL.Services.Impelementation
                 await _uow.SaveChangesAsync();
 
                 // notify guest & host
-                await _notificationService.CreateAsync(new CreateNotificationVM { UserId = booking.GuestId, Title = "Payment Confirmed", Body = $"Payment confirmed for booking {booking.Id}", CreatedAt = DateTime.UtcNow });
-                await _notificationService.CreateAsync(new CreateNotificationVM { UserId = booking.Listing.UserId, Title = "New Booking", Body = $"Your listing has a new confirmed booking {booking.Id}", CreatedAt = DateTime.UtcNow });
+                await _notificationService.CreateAsync(new CreateNotificationVM 
+                { 
+                    UserId = booking.GuestId, 
+                    Title = "Payment Confirmed", 
+                    Body = $"Your payment was successful! Enjoy your stay.", 
+                    CreatedAt = DateTime.UtcNow,
+                    ActionUrl = $"/booking",
+                    ActionLabel = "View Booking"
+                });
+                await _notificationService.CreateAsync(new CreateNotificationVM 
+                { 
+                    UserId = booking.Listing.UserId, 
+                    Title = "New Booking Confirmed", 
+                    Body = $"You have a new booking for {booking.Listing.Title}. Check-in: {booking.CheckInDate:MMM dd}", 
+                    CreatedAt = DateTime.UtcNow,
+                    ActionUrl = $"/listings/{booking.Listing.Id}",
+                    ActionLabel = "View Listing"
+                });
 
                 return Response<bool>.SuccessResponse(true);
             }
@@ -91,7 +115,15 @@ namespace BLL.Services.Impelementation
 
                 // notify user
                 var booking = await _uow.Bookings.GetByIdAsync(payment.BookingId);
-                await _notificationService.CreateAsync(new CreateNotificationVM { UserId = booking.GuestId, Title = "Payment Refunded", Body = $"Payment for booking {booking.Id} has been refunded", CreatedAt = DateTime.UtcNow });
+                await _notificationService.CreateAsync(new CreateNotificationVM 
+                { 
+                    UserId = booking.GuestId, 
+                    Title = "Payment Refunded", 
+                    Body = $"Your refund has been processed successfully.", 
+                    CreatedAt = DateTime.UtcNow,
+                    ActionUrl = $"/booking",
+                    ActionLabel = "View Bookings"
+                });
 
                 return Response<bool>.SuccessResponse(true);
             }

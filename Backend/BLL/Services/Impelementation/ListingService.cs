@@ -87,7 +87,14 @@ public class ListingService : IListingService
 
             //create notification for the host after creation
             await notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM 
-            { UserId = hostId, Title = "Listing created", Body = "Your listing created succefully ", CreatedAt = DateTime.UtcNow });
+            { 
+                UserId = hostId, 
+                Title = "Listing Created", 
+                Body = "Your listing was created successfully and is pending approval.", 
+                CreatedAt = DateTime.UtcNow,
+                ActionUrl = $"/listings/{id}",
+                ActionLabel = "View Listing"
+            });
 
 
             return new Response<int>(id, null, false);
@@ -296,7 +303,14 @@ public class ListingService : IListingService
 
             //create notification for the host after edited
             await notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM
-            { UserId = hostId, Title = "Listing created", Body = "Your listing edited succefully ", CreatedAt = DateTime.UtcNow });
+            { 
+                UserId = hostId, 
+                Title = "Listing Updated", 
+                Body = "Your listing was updated successfully.", 
+                CreatedAt = DateTime.UtcNow,
+                ActionUrl = $"/listings/{listingId}",
+                ActionLabel = "View Listing"
+            });
 
 
             return new Response<ListingUpdateVM>(vmOut, null, false);
@@ -347,7 +361,14 @@ public class ListingService : IListingService
             var ok = await unitOfWork.Listings.ApproveAsync(id, approverUserId, ct);
             //create notification for the host after approve
             await notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM
-            { UserId = exist.UserId , Title = "Listing created", Body = "Admin has approve your listing", CreatedAt = DateTime.UtcNow });
+            { 
+                UserId = exist.UserId, 
+                Title = "Listing Approved", 
+                Body = "Great news! Your listing has been approved and is now live.", 
+                CreatedAt = DateTime.UtcNow,
+                ActionUrl = $"/listings/{id}",
+                ActionLabel = "View Listing"
+            });
 
             return new Response<bool>(ok, ok ? null : "Approve failed", !ok);
         }
@@ -378,7 +399,14 @@ public class ListingService : IListingService
             var ok = await unitOfWork.Listings.RejectAsync(id, approverUserId, note, ct);
             //create notification for the host after rejection
             await notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM
-            { UserId = exist.UserId, Title = "Listing created", Body = "Admin has reject your listing", CreatedAt = DateTime.UtcNow });
+            { 
+                UserId = exist.UserId, 
+                Title = "Listing Needs Revision", 
+                Body = note ?? "Your listing needs some changes before approval. Please review and resubmit.", 
+                CreatedAt = DateTime.UtcNow,
+                ActionUrl = $"/listings/{id}",
+                ActionLabel = "Edit Listing"
+            });
 
             return new Response<bool>(ok, ok ? null : "Reject failed", !ok);
         }

@@ -7,12 +7,14 @@ namespace BLL.Services.Impelementation
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly IPaymentService _paymentService;
+        private readonly INotificationService _notificationService;
 
-        public BookingService(IUnitOfWork uow, IMapper mapper, IPaymentService paymentService)
+        public BookingService(IUnitOfWork uow, IMapper mapper, IPaymentService paymentService, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
             _paymentService = paymentService;
+            _notificationService = notificationService;
         }
 
         // Create booking: check availability, calculate price, create booking and initiate payment atomically
@@ -82,6 +84,32 @@ namespace BLL.Services.Impelementation
                 _uow.Bookings.Update(booking);
                 await _uow.SaveChangesAsync();
                  
+                // notify guest about cancellation
+                await _notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM
+                {
+                    UserId = guestId,
+                    Title = "Booking Cancelled",
+                    Body = "Your booking has been cancelled successfully.",
+                    CreatedAt = DateTime.UtcNow,
+                    ActionUrl = "/booking",
+                    ActionLabel = "View Bookings"
+                });
+                
+                // notify host about cancellation
+                var listing = await _uow.Listings.GetByIdAsync(booking.ListingId);
+                if (listing != null)
+                {
+                    await _notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM
+                    {
+                        UserId = listing.UserId,
+                        Title = "Booking Cancelled",
+                        Body = $"A guest cancelled their booking for {listing.Title}.",
+                        CreatedAt = DateTime.UtcNow,
+                        ActionUrl = $"/listings/{listing.Id}",
+                        ActionLabel = "View Listing"
+                    });
+                }
+                
                 // if paid -> refund
                 if (booking.Payment != null && booking.Payment.Status == PaymentStatus.Success)
                 {

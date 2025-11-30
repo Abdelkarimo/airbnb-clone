@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /**
  * First-time user onboarding walkthrough component
@@ -12,7 +13,7 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-onboarding-walkthrough',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './onboarding-walkthrough.html',
   styleUrls: ['./onboarding-walkthrough.css']
 })
@@ -21,28 +22,28 @@ export class OnboardingWalkthrough implements OnInit {
 
   steps = [
     {
-      title: 'Welcome to Luxuy! ✨',
-      description: 'Your journey to finding perfect accommodations starts here. Let us show you around!',
+      titleKey: 'onboarding.step1.title',
+      descriptionKey: 'onboarding.step1.description',
       icon: '🏠'
     },
     {
-      title: 'Discover Amazing Listings',
-      description: 'Browse through thousands of verified properties worldwide. Use filters to find exactly what you need.',
+      titleKey: 'onboarding.step2.title',
+      descriptionKey: 'onboarding.step2.description',
       icon: '🔍'
     },
     {
-      title: 'Book with Confidence',
-      description: 'Secure booking process with instant confirmations. Your payments are protected.',
+      titleKey: 'onboarding.step3.title',
+      descriptionKey: 'onboarding.step3.description',
       icon: '🔒'
     },
     {
-      title: 'Stay Connected',
-      description: 'Chat with hosts directly, receive real-time notifications, and manage your bookings effortlessly.',
+      titleKey: 'onboarding.step4.title',
+      descriptionKey: 'onboarding.step4.description',
       icon: '💬'
     },
     {
-      title: 'Become a Host',
-      description: 'Have a property? List it and start earning! Switch to host mode anytime from your profile.',
+      titleKey: 'onboarding.step5.title',
+      descriptionKey: 'onboarding.step5.description',
       icon: '🏡'
     }
   ];
@@ -50,7 +51,8 @@ export class OnboardingWalkthrough implements OnInit {
   constructor(
     private router: Router,
     private http: HttpClient,
-    private auth: AuthService
+    private auth: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -77,9 +79,11 @@ export class OnboardingWalkthrough implements OnInit {
   }
 
   skipOnboarding() {
-    if (confirm('Are you sure you want to skip the walkthrough? You can always access help from your profile.')) {
-      this.completeOnboarding();
-    }
+    this.translate.get('onboarding.skipConfirmation').subscribe((message: string) => {
+      if (confirm(message)) {
+        this.completeOnboarding();
+      }
+    });
   }
 
   /**

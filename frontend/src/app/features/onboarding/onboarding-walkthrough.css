@@ -229,3 +229,34 @@
     width: 100%;
   }
 }
+
+/* RTL Support for Arabic */
+[dir="rtl"] .step-content {
+  text-align: center;
+  direction: rtl;
+}
+
+[dir="rtl"] .step-title,
+[dir="rtl"] .step-description,
+[dir="rtl"] .step-counter {
+  font-family: 'Cairo', sans-serif;
+}
+
+[dir="rtl"] .btn {
+  font-family: 'Cairo', sans-serif;
+}
+
+[dir="rtl"] .navigation-buttons {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .step-indicators {
+  direction: rtl;
+}
+
+/* Adjust button order for RTL */
+@media (max-width: 768px) {
+  [dir="rtl"] .navigation-buttons {
+    flex-direction: column;
+  }
+}

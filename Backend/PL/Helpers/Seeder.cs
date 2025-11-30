@@ -136,7 +136,7 @@ namespace PL.Helpers
             var allUsers = owners;
             foreach (var u in allUsers)
             {
-                await uow.Notifications.CreateAsync(u.Id, "Welcome", $"Welcome {u.FullName}", DAL.Enum.NotificationType.System);
+                await uow.Notifications.CreateAsync(u.Id, "Welcome to Airbnb Clone!", $"Hi {u.FullName}! We're excited to have you here. Explore amazing stays around the world.", DAL.Enum.NotificationType.System, "/onboarding", "Start Tour");
             }
 
             await uow.SaveChangesAsync();

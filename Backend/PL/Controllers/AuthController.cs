@@ -137,8 +137,9 @@ namespace PL.Controllers
             }
 
             var role = string.IsNullOrWhiteSpace(vm.Role) ? "Guest" : vm.Role;
+            var fullName = string.IsNullOrWhiteSpace(vm.FullName) ? "User" : vm.FullName;
 
-            var token = _identityService.GenerateToken(userId, role, orderId, listingId);
+            var token = _identityService.GenerateToken(userId, role, fullName, orderId, listingId);
             return Ok(new { token });
         }
     }

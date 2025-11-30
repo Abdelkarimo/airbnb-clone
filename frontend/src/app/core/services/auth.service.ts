@@ -153,6 +153,19 @@ export class AuthService {
     return role === 'Admin';
   }
 
+  // Get user's full name from JWT token
+  getUserFullName(): string | null {
+    const p = this.getPayload();
+    if (!p) {
+      console.log('getUserFullName: No payload found');
+      return null;
+    }
+    console.log('getUserFullName: JWT Payload:', p);
+    const fullName = p['name'] || p['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || null;
+    console.log('getUserFullName: Extracted full name:', fullName);
+    return fullName;
+  }
+
   // Login endpoint call: expects backend returns LoginResponseVM { token, isFirstLogin, user }
   login(model: { email: string; password: string }): Observable<any> {
     console.log('AuthService: login called with', model);

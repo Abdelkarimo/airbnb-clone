@@ -7,14 +7,14 @@
 
     <!-- Step Counter -->
     <div class="step-counter">
-      Step {{ currentStep + 1 }} of {{ steps.length }}
+      {{ 'onboarding.stepCounter' | translate: {current: currentStep + 1, total: steps.length} }}
     </div>
 
     <!-- Current Step Content -->
     <div class="step-content" *ngIf="steps[currentStep]">
       <div class="step-icon">{{ steps[currentStep].icon }}</div>
-      <h1 class="step-title">{{ steps[currentStep].title }}</h1>
-      <p class="step-description">{{ steps[currentStep].description }}</p>
+      <h1 class="step-title">{{ steps[currentStep].titleKey | translate }}</h1>
+      <p class="step-description">{{ steps[currentStep].descriptionKey | translate }}</p>
     </div>
 
     <!-- Navigation Buttons -->
@@ -23,19 +23,19 @@
         class="btn btn-secondary"
         (click)="previousStep()"
         [disabled]="currentStep === 0">
-        Previous
+        {{ 'onboarding.previous' | translate }}
       </button>
 
       <button
         class="btn btn-skip"
         (click)="skipOnboarding()">
-        Skip
+        {{ 'onboarding.skip' | translate }}
       </button>
 
       <button
         class="btn btn-primary"
         (click)="nextStep()">
-        {{ currentStep === steps.length - 1 ? 'Get Started' : 'Next' }}
+        {{ (currentStep === steps.length - 1 ? 'onboarding.getStarted' : 'onboarding.next') | translate }}
       </button>
     </div>
 

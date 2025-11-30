@@ -12,6 +12,6 @@ namespace BLL.Services.Abstractions
         Task<Response<string>> MakeUserAdminAsync(Guid userId);
         Task<Response<bool>> CompleteOnboardingAsync(Guid userId);
 
-        string GenerateToken(Guid userId, string role, Guid? orderId = null, Guid? listingId = null);
+        string GenerateToken(Guid userId, string role, string fullName, Guid? orderId = null, Guid? listingId = null);
     }
 }

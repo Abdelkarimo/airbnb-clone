@@ -18,6 +18,14 @@
             await _context.SaveChangesAsync();
             return entity;
         }
+        
+        public async Task<Notification> CreateAsync(Guid userId, string title, string body, DAL.Enum.NotificationType type, string? actionUrl, string? actionLabel)
+        {
+            var entity = Notification.Create(userId, title, body, type, actionUrl, actionLabel);
+            await _context.Notifications.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
 
         public async Task<bool> DeleteAsync(Notification notification)
         {

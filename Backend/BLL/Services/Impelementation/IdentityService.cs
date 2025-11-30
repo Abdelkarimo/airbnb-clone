@@ -8,13 +8,26 @@ namespace BLL.Services.Impelementation
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly ITokenService _tokenService;
+        private readonly INotificationService _notificationService;
+        private readonly IMessageService _messageService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public IdentityService(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<IdentityRole<Guid>> roleManager, ITokenService tokenService)
+        public IdentityService(
+            UserManager<User> userManager, 
+            SignInManager<User> signInManager, 
+            RoleManager<IdentityRole<Guid>> roleManager, 
+            ITokenService tokenService,
+            INotificationService notificationService,
+            IMessageService messageService,
+            IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _tokenService = tokenService;
+            _notificationService = notificationService;
+            _messageService = messageService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Response<LoginResponseVM>> RegisterAsync(string email, string password, string fullName, string userName, string? firebaseUid = null, string role = "Guest")
@@ -57,8 +70,45 @@ namespace BLL.Services.Impelementation
 
             await _userManager.AddToRoleAsync(user, role);
 
+            // Send welcome notification with onboarding button
+            await _notificationService.CreateAsync(new BLL.ModelVM.Notification.CreateNotificationVM
+            {
+                UserId = user.Id,
+                Title = "Welcome to Airbnb Clone!",
+                Body = $"Hi {fullName}! We're excited to have you here. Take a quick tour to discover all the amazing features.",
+                CreatedAt = DateTime.UtcNow,
+                ActionUrl = "/onboarding",
+                ActionLabel = "Start Tour",
+                Type = DAL.Enum.NotificationType.System
+            });
+            
+            // Send welcome message from system user
+            var systemUser = await _userManager.FindByEmailAsync("system@airbnb.com");
+            if (systemUser != null)
+            {
+                await _unitOfWork.Messages.CreateAsync(
+                    systemUser.Id, 
+                    user.Id, 
+                    $@"Welcome {fullName}! 🎉
+
+We're thrilled to have you join our community. Here's what you can do:
+
+✨ Browse unique stays worldwide
+📅 Book your perfect vacation
+💬 Chat with hosts
+🏠 List your own property
+
+Need help? Just reply to this message!
+
+Happy exploring!
+- The Airbnb Clone Team",
+                    DateTime.UtcNow,
+                    false);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
             // generate token for the new user
-            var token = _tokenService.GenerateToken(user.Id, role);
+            var token = _tokenService.GenerateToken(user.Id, role, user.FullName);
             
             // New users always get onboarding (IsFirstLogin defaults to true)
             var loginResponse = new LoginResponseVM
@@ -100,7 +150,7 @@ namespace BLL.Services.Impelementation
             if (!await _roleManager.RoleExistsAsync(newRole))
                 await _roleManager.CreateAsync(new IdentityRole<Guid>(newRole));
             await _userManager.AddToRoleAsync(user, newRole);
-            var token = _tokenService.GenerateToken(user.Id, newRole);
+            var token = _tokenService.GenerateToken(user.Id, newRole, user.FullName);
             return Response<string>.SuccessResponse(token);
         }
         //make an admin
@@ -117,7 +167,7 @@ namespace BLL.Services.Impelementation
                 await _userManager.RemoveFromRoleAsync(user, r);
             }
             await _userManager.AddToRoleAsync(user, role);
-            var token = _tokenService.GenerateToken(user.Id, role);
+            var token = _tokenService.GenerateToken(user.Id, role, user.FullName);
             return Response<string>.SuccessResponse(token);
         }
 
@@ -132,7 +182,7 @@ namespace BLL.Services.Impelementation
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault() ?? "Guest";
 
-            var token = _tokenService.GenerateToken(user.Id, role);
+            var token = _tokenService.GenerateToken(user.Id, role, user.FullName);
             
             // Build login response with onboarding status
             var loginResponse = new LoginResponseVM
@@ -203,7 +253,7 @@ namespace BLL.Services.Impelementation
 
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault() ?? "Guest";
-            var token = _tokenService.GenerateToken(user.Id, role);
+            var token = _tokenService.GenerateToken(user.Id, role, user.FullName);
             return Response<string>.SuccessResponse(token);
         }
 
@@ -236,9 +286,9 @@ namespace BLL.Services.Impelementation
             return Response<bool>.SuccessResponse(true);
         }
 
-        public string GenerateToken(Guid userId, string role, Guid? orderId = null, Guid? listingId = null)
+        public string GenerateToken(Guid userId, string role, string fullName, Guid? orderId = null, Guid? listingId = null)
         {
-            return _tokenService.GenerateToken(userId, role, orderId, listingId);
+            return _tokenService.GenerateToken(userId, role, fullName, orderId, listingId);
         }
     }
 }
