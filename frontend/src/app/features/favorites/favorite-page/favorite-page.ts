@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ListingCard } from '../../listings-page/listing-card/listing-card';
 import { FavoriteStoreService } from '../../../core/services/favoriteService/favorite-store-service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 import { FavoriteListingVM, FavoriteVM } from '../../../core/models/favorite';
 import { ListingOverviewVM } from '../../../core/models/listing.model';
 
@@ -141,8 +142,33 @@ export class FavoritePage implements OnInit {
     this.router.navigate(['/listings']);
   }
 
-  clearAll(): void {
-    if (!confirm('Are you sure you want to clear all favorites?')) return;
+  async clearAll(): Promise<void> {
+    // Use SweetAlert2 modal to confirm clearing favorites — branded with our app identity.
+    const res = await Swal.fire({
+      title: 'Clear all favorites?',
+      html: `
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img src="/3.png" alt="hero" style="width:120px;height:120px;border-radius:50%;object-fit:cover;" />
+          <div style="text-align:left;">
+            <div style="font-weight:600;font-size:1.05rem;">Are you sure?</div>
+            <div style="color:#6c757d;margin-top:6px">This will remove all saved listings from your favorites. You can always add them again later.</div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      cancelButtonText: 'Cancel',
+      confirmButtonText: 'Yes, clear all',
+      icon: 'warning',
+      customClass: {
+        popup: 'swal-custom-popup',
+        confirmButton: 'btn btn-danger',
+        cancelButton: 'btn btn-outline-secondary'
+      },
+      buttonsStyling: false,
+      reverseButtons: true
+    });
+
+    if (!res.isConfirmed) return;
 
     // Optimistic clear: update UI immediately and send API request.
     const backupFavorites = [...this.favorites];
@@ -159,7 +185,16 @@ export class FavoritePage implements OnInit {
 
     this.store.clearAll().subscribe({
       next: () => {
-        console.log('All favorites cleared');
+        // Friendly confirmation
+        Swal.fire({
+          title: 'All favorites cleared',
+          text: 'All your saved listings were removed from favorites.',
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1600,
+          toast: true,
+          position: 'top-end'
+        });
       },
       error: (err) => {
         // rollback on failure
@@ -170,6 +205,13 @@ export class FavoritePage implements OnInit {
         this.store.loadFavorites();
 
         this.error = 'Failed to clear favorites';
+        Swal.fire({
+          title: 'Could not clear favorites',
+          text: this.error,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          customClass: { popup: 'swal-custom-popup' }
+        });
         console.error(err);
       }
     });
