@@ -1,3 +1,4 @@
+/* Your existing styles remain untouched */
 .filters-row,
 .listings-row {
   background: rgba(245, 245, 220, 0.08);
@@ -25,13 +26,10 @@
   row-gap: 1.2rem;
 }
 
-
 .search-wrap {
   display: flex;
   gap: 15px;
-  /* width: 40.35%; */
   padding: 9px 12px;
-  right: 4em;
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.03);
   background: rgba(119, 116, 108, 0.253);
@@ -50,30 +48,30 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
-
 .search-input {
   background: transparent;
   border: 0;
   outline: 0;
   color: rgb(245, 239, 239);
-  width: 500px;
+  width: 100%;
   font-size: 18px;
   transition: color 0.3s ease;
+  flex: 1;
 }
 
 .search-input::placeholder {
-  color: rgb(245, 239, 239);
+  color: rgba(0, 0, 0, 0.65);
   font-size: 16px;
 }
 
 .bi.bi-search {
-  padding-left: 20px;
+  padding-left: 0;
   margin-top: 3.5px;
-  color: rgb(245, 239, 239);
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .glass-btn {
-  width: 50px;
+  width: 100%;
   height: 44px;
   display: flex;
   align-items: center;
@@ -83,6 +81,10 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   color: white;
   transition: all 0.3s ease;
+}
+
+.reset-btn {
+  width: 50%;
 }
 
 .glass-btn:hover {
@@ -122,4 +124,117 @@
   border-color: rgba(59, 57, 57, 0.616);
   color: white;
   box-shadow: 0 0 10px rgba(255, 246, 251, 0.5);
+}
+
+/* Improved Responsive Styles */
+@media (max-width: 1500px) {
+  .cards-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .reset-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .cards-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .search-input {
+    font-size: 16px;
+  }
+
+  .reset-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 992px) {
+  .cards-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .search-input {
+    font-size: 16px;
+  }
+
+  .search-input::placeholder {
+    font-size: 14px;
+  }
+
+  .filters-row {
+    padding: 0.8em;
+  }
+
+  .reset-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .cards-list {
+    grid-template-columns: 1fr;
+  }
+
+  .search-input {
+    font-size: 16px;
+  }
+
+  .search-input::placeholder {
+    font-size: 14px;
+  }
+
+  .filters-row {
+    padding: 0.8em;
+  }
+
+  .listings-row {
+    padding: 1em;
+  }
+
+  .amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .reset-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .search-input {
+    font-size: 14px;
+  }
+
+  .search-input::placeholder {
+    font-size: 12px;
+  }
+
+  .filters-row {
+    padding: 0.6em;
+  }
+
+  .listings-row {
+    padding: 0.8em;
+  }
+
+  .cards-list {
+    gap: 1rem;
+  }
+
+  .amenities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .glass-btn {
+    height: 40px;
+  }
+
+  .reset-btn {
+    width: 100%;
+  }
 }

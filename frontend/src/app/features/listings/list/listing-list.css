@@ -1,30 +1,41 @@
 /* ------------------ LAYOUT ------------------ */
 
-.page-layout {
+.row.m-5 {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  margin: 0 2rem 0 2.5rem !important;
 }
 
-/* FIXED LEFT SIDEBAR */
-/* Sidebar wrapper keeps Add button in flow */
+/* LISTINGS COLUMN */
+.col-10 {
+  padding-right: 20px;
+}
+
+/* SIDEBAR COLUMN */
+.col-2 {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar wrapper to contain both filters and add button */
 .sidebar-wrapper {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
 }
-/* Remove position: fixed from sidebar */
+
+/* Sidebar glass card */
 .filters-sidebar {
-  top: 115px;
-  left: 2000px;
-  display: flex;
-  flex-direction: column;
-  height: auto;
-  /* allow natural height */
   background: rgba(245, 245, 220, 0.08);
   border-radius: 1.5vw;
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 20px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Make sidebar content grow */
@@ -35,25 +46,41 @@
   flex-grow: 1;
 }
 
+/* Add Listing Button - now inside sidebar wrapper */
+.add-listing-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px 12px;
+  margin-top: 1rem;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+  background: rgba(245, 245, 220, 0.08);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 1.2rem;
+}
+
+.add-listing-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  color: white;
+  text-decoration: none;
+}
+
 .listings-row {
-  margin-top: -3em;
+  margin-top: 0;
   background: rgba(245, 245, 220, 0.08);
   border-radius: 1.5vw;
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 10px;
-}
-
-/* .sidebar-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-} */
-
-/* MAIN CONTENT SHIFT RIGHT */
-.content-area {
-  margin-left: 310px;
-  width: calc(100% - 310px);
+  padding: 20px;
 }
 
 /* ------------------ FILTER INPUTS ------------------ */
@@ -98,61 +125,276 @@
   font-size: 16px;
 }
 
-.add {
-  bottom: 2000px;
+.fancy-input::placeholder{
+  color: white;
 }
-
 /* ------------------ LISTINGS GRID ------------------ */
 
 .cards-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
 
-.glass-card {
+.card-link {
+  display: block;
+}
+
+.listing-card {
+  width: 100%;
+  height: 340px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 1.2rem;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
   transition: .3s;
 }
 
-.glass-card:hover {
+.listing-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
 }
 
-.listing-img {
+/* Image wrapper always reserves space */
+.image-wrapper {
+  height: 180px;
   width: 100%;
-  height: 170px;
-  object-fit: cover;
   border-radius: 1.2rem;
+  overflow: hidden;
+  background: #fceded3a; /* visible even when no image loads */
+}
+
+/* Image always fits inside reserved space */
+.card-img-top {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.title, .location, .type {
+  margin: 3px 0;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.5em 1em;
+  background: rgba(231, 230, 226, 0.3);
+  color: #333;
+  border-radius: 0.6vw;
+  backdrop-filter: blur(6px);
+}
+
+.rate {
+  font-size: 0.85em;
+  color: rgb(255, 253, 240);
+}
+
+.bottom {
+  margin-top: auto;
+  margin-bottom: -10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .cards-list {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .listing-card {
+    height: 320px;
+  }
+  
+  .image-wrapper {
+    height: 160px;
+  }
+}
+
+/* Keep all your existing responsive styles for the layout */
+/* ... your existing responsive CSS ... */
+
+/* ------------------ RESPONSIVE ------------------ */
+
+/* Large devices (desktops, less than 1200px) */
+@media (max-width: 1199.98px) {
+  .col-10 {
+    flex: 0 0 75%;
+    max-width: 75%;
+    padding-right: 15px;
+  }
+
+  .col-2 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+
+  .row.m-5 {
+    margin: 0 1.5rem 0 2rem !important;
+  }
+}
+
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .col-10 {
+    flex: 0 0 70%;
+    max-width: 70%;
+    padding-right: 15px;
+  }
+
+  .col-2 {
+    flex: 0 0 30%;
+    max-width: 30%;
+  }
+
+  .filters-sidebar {
+    padding: 15px;
+  }
+
+  .row.m-5 {
+    margin: 0 1.5rem 0 2rem !important;
+  }
 }
 
 /* ------------------ RESPONSIVE ------------------ */
 
-@media (max-width: 992px) {
-  .filters-sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
-    top: 0;
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .col-10 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-right: 0;
     margin-bottom: 20px;
   }
 
-  .content-area {
-    margin-left: 0;
-    width: 100%;
+  .col-2 {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
 
-  .page-layout {
-    flex-direction: column;
+  .sidebar-wrapper {
+    position: relative;
+    top: 0;
+  }
+
+  .filters-sidebar {
+    padding: 15px;
   }
 }
 
-@media (max-width: 576px) {
+/* Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+  .row.m-5 {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+  }
+
   .cards-list {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .listings-row {
+    padding: 15px;
+  }
+}
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+  .row.m-5 {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+  }
+
+  .cards-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filters-sidebar {
+    padding: 15px;
+    border-radius: 1rem;
+  }
+
+  .listings-row {
+    padding: 15px;
+    border-radius: 1rem;
+  }
+
+  .add-listing-btn {
+    padding: 12px;
+  }
+
+  /* Improve button group on small screens */
+  .btn-group-sm {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Very small devices (less than 400px) */
+@media (max-width: 400px) {
+  .cards-list {
+    grid-template-columns: 1fr;
+  }
+
+  .glass-card {
+    margin-bottom: 1rem;
+  }
+
+  /* Stack filter inputs vertically with better spacing */
+  .filter-block {
+    margin-bottom: 1rem;
+  }
+
+  .search-wrap,
+  .fancy-input,
+  .filter-block select,
+  .filter-block input {
+    padding: 12px 16px;
+  }
+}
+
+/* Large mobile devices (between 576px and 768px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .cards-list {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+/* Ensure proper touch targets on mobile */
+@media (max-width: 768px) {
+
+  .btn,
+  .add-listing-btn,
+  .search-wrap,
+  .fancy-input {
+    min-height: 44px;
+    /* Minimum touch target size */
+  }
+
+  /* Improve readability on mobile */
+  .text-white,
+  .text-muted {
+    font-size: 0.9rem;
+  }
+
+  h5 {
+    font-size: 1.1rem;
   }
 }

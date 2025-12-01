@@ -34,6 +34,8 @@ h3 {
     padding-bottom: 0.75rem;
 }
 
+
+
 .btn-back {
     background: rgba(49, 48, 48, 0.219);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -98,6 +100,7 @@ input::placeholder, textarea::placeholder {
 textarea {
     resize: vertical;
 }
+
 
 /* Form row for side-by-side fields */
 .form-row {
@@ -289,6 +292,17 @@ input[type="file"]:hover::file-selector-button {
     cursor: pointer;
     transition: all 0.2s;
     backdrop-filter: blur(6px);
+}
+
+.btn-outline{
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 234, 234, 0.142);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .btn:disabled {

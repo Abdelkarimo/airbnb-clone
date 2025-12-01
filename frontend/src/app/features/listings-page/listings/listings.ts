@@ -22,7 +22,8 @@ export class Listings implements OnInit {
 
   // filters (signals)
   search = signal<string>('');
-  location = signal<string>('');
+  destination = signal<string>('');
+  type = signal<string>('');
   maxPrice = signal<number | null>(null);
   minRating = signal<number | null>(null);
 
@@ -42,10 +43,8 @@ export class Listings implements OnInit {
 
   // list of amenities
   amenitiesList = [
-    'Wi-Fi', 'Pool', 'Air Conditioning', 'Kitchen',
-    'Washer', 'Dryer', 'TV', 'Heating', 'Parking',
-    // 'Pet Friendly', 'Gym', 'Hot Tub', 'Fireplace', 'Breakfast',
-    // 'Elevator', 'Wheelchair Accessible', 'Garden', 'Balcony', 'Sauna' 
+    'Wi-Fi', 'Pool', 'AC', 'Kitchen', 'Washer', 'Dryer', 'TV', 'Heating',
+    'Parking', 'Fireplace', 'Gym', 'Breakfast', 'Pets Allowed', 'Hot Tub', 'Elevator'
   ];
 
   toggleAmenity(amenity: string): void {
@@ -82,47 +81,76 @@ export class Listings implements OnInit {
     return s;
   }
 
-  // computed list of unique locations
-  locations = computed(() => {
-    const data = this.listings();
-    const set = new Set<string>();
-    data.forEach(l => set.add(l.location));
-    return Array.from(set);
+  // computed list of unique destinations - improved sorting
+  destinations = computed<string[]>(() => {
+    const allDestinations = this.listings()
+      .map(l => l.destination || l.location) // Fallback to location if destination doesn't exist
+      .filter((dest): dest is string => !!dest);
+
+    return [...new Set(allDestinations)].sort((a, b) => a.localeCompare(b));
   });
 
-  // computed filtered list
+  // computed list of unique types - improved sorting
+  types = computed<string[]>(() => {
+    const allTypes = this.listings()
+      .map(l => l.type)
+      .filter((type): type is string => !!type);
+
+    return [...new Set(allTypes)].sort((a, b) => a.localeCompare(b));
+  });
+
+  // computed filtered list - improved filtering logic
   filtered = computed<ListingOverviewVM[]>(() => {
     const data = this.listings();
-    if (!data || !Array.isArray(data)) return [];
+    if (!data || !Array.isArray(data) || data.length === 0) return [];
 
     const rawQuery = this.search().trim();
-    const rawLoc = this.location().trim();
+    const rawDest = this.destination().trim();
+    const rawType = this.type().trim();
     const maxP = this.maxPrice();
     const minR = this.minRating();
+    const selectedAmenities: string[] = this.form.get('amenities')?.value || [];
 
     const q = this.normalize(rawQuery);
-    const locNormalized = this.normalize(rawLoc);
+    const destNormalized = this.normalize(rawDest);
+    const typeNormalized = this.normalize(rawType);
 
     return data.filter(l => {
       const title = this.normalize(l.title);
-      const locationVal = this.normalize(l.location);
+      const destinationVal = this.normalize(l.destination || l.location); // Use destination with fallback to location
+      const typeVal = this.normalize(l.type ?? '');
       const description = this.normalize(l.description ?? '');
 
+      // Search matching
       const matchesSearch =
         !q ||
         title.includes(q) ||
-        locationVal.includes(q) ||
+        destinationVal.includes(q) ||
         description.includes(q);
 
-      const matchesLocation =
-        !locNormalized || locationVal.includes(locNormalized);
+      // Destination matching
+      const matchesDestination =
+        !destNormalized || destinationVal.includes(destNormalized);
 
-      const priceOk = maxP === null || l.pricePerNight <= maxP;
+      // Type matching
+      const matchesType =
+        !typeNormalized || typeVal.includes(typeNormalized);
 
+      // Price matching
+      const priceOk =
+        maxP === null || l.pricePerNight <= maxP;
+
+      // Rating matching
       const ratingOk =
         minR === null || (l.averageRating ?? 0) >= minR;
 
-      return matchesSearch && matchesLocation && priceOk && ratingOk;
+      // Amenities matching
+      // const matchesAmenities = selectedAmenities.length === 0 || 
+      //   selectedAmenities.every(amenity => 
+      //     l.amenities?.includes(amenity) || false
+      //   );
+
+      return matchesSearch && matchesDestination && matchesType && priceOk && ratingOk; // && matchesAmenities;
     });
   });
 
@@ -158,7 +186,8 @@ export class Listings implements OnInit {
 
   resetFilters() {
     this.search.set('');
-    this.location.set('');
+    this.destination.set('');
+    this.type.set('');
     this.maxPrice.set(null);
     this.minRating.set(null);
     this.form.patchValue({ amenities: [] });
