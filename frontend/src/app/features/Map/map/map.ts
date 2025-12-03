@@ -127,7 +127,7 @@ export class MapComponent implements OnInit, OnDestroy {
         (res: any) => {
           this.isLoading = false;
           let properties = res.properties || [];
-          
+
           // Convert to ListingOverviewVM for personalized sorting
           const listings: ListingOverviewVM[] = properties.map((p: PropertyMap) => ({
             id: p.id,
@@ -150,10 +150,10 @@ export class MapComponent implements OnInit, OnDestroy {
             bookingCount: 0,
             amenities: p.amenities || []
           }));
-          
+
           // Sort by user preferences
           const sorted = this.userPreferences.sortByRelevance(listings);
-          
+
           // Convert back to PropertyMap format
           this.properties = sorted.map(l => ({
             id: l.id,
@@ -172,7 +172,7 @@ export class MapComponent implements OnInit, OnDestroy {
             bathrooms: l.bathrooms,
             amenities: l.amenities
           }));
-          
+
           // Restore lat/lng from original properties
           this.properties.forEach((p, idx) => {
             const original = properties.find((op: PropertyMap) => op.id === p.id);
@@ -181,7 +181,7 @@ export class MapComponent implements OnInit, OnDestroy {
               p.longitude = original.longitude;
             }
           });
-          
+
           this.updateMarkers();
         },
         (error: any) => {

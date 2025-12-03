@@ -8,7 +8,7 @@ import { UserPreferencesService } from '../../../core/services/user-preferences/
   standalone: true,
   imports: [CommonModule, TranslateModule],
   template: `
-    <div class="personalization-badge" *ngIf="hasPreferences" 
+    <div class="personalization-badge" *ngIf="hasPreferences"
          [title]="'listings.personalizedResults' | translate">
       <i class="bi bi-stars"></i>
       <span>{{ 'listings.personalized' | translate }}</span>

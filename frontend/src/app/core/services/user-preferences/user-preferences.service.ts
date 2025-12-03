@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ListingOverviewVM } from '../../models/listing.model';
+import { AuthService } from '../auth-service';
 
 interface UserPreferences {
   amenities: Map<string, number>; // amenity -> frequency count
@@ -7,42 +8,63 @@ interface UserPreferences {
   types: Map<string, number>;
   priceRanges: number[]; // Array of prices user has interacted with
   lastUpdated: number;
+  userId: string; // Track which user these preferences belong to
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserPreferencesService {
-  private readonly STORAGE_KEY = 'user_preferences';
+  private readonly STORAGE_KEY_PREFIX = 'user_preferences_';
+  private readonly GUEST_USER_ID = 'guest';
   private readonly MAX_AMENITY_SCORE = 100;
   private readonly DECAY_FACTOR = 0.95; // Decay older preferences slightly
+  private authService = inject(AuthService);
 
   constructor() {
     this.initializePreferences();
   }
 
+  /**
+   * Get the storage key for the current user
+   */
+  private getStorageKey(): string {
+    const user = this.authService.getCurrentUser();
+    const userId = user?.id || this.GUEST_USER_ID;
+    return `${this.STORAGE_KEY_PREFIX}${userId}`;
+  }
+
   private initializePreferences(): void {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
+    const storageKey = this.getStorageKey();
+    const stored = localStorage.getItem(storageKey);
     if (!stored) {
+      const user = this.authService.getCurrentUser();
+      const userId = user?.id || this.GUEST_USER_ID;
       this.savePreferences({
         amenities: new Map(),
         destinations: new Map(),
         types: new Map(),
         priceRanges: [],
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
+        userId: userId
       });
     }
   }
 
   private getPreferences(): UserPreferences {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
+    const storageKey = this.getStorageKey();
+    const stored = localStorage.getItem(storageKey);
+    const user = this.authService.getCurrentUser();
+    const userId = user?.id || this.GUEST_USER_ID;
+
     if (!stored) {
       return {
         amenities: new Map(),
         destinations: new Map(),
         types: new Map(),
         priceRanges: [],
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
+        userId: userId
       };
     }
 
@@ -52,19 +74,22 @@ export class UserPreferencesService {
       destinations: new Map(Object.entries(parsed.destinations || {})),
       types: new Map(Object.entries(parsed.types || {})),
       priceRanges: parsed.priceRanges || [],
-      lastUpdated: parsed.lastUpdated || Date.now()
+      lastUpdated: parsed.lastUpdated || Date.now(),
+      userId: parsed.userId || userId
     };
   }
 
   private savePreferences(preferences: UserPreferences): void {
+    const storageKey = this.getStorageKey();
     const toSave = {
       amenities: Object.fromEntries(preferences.amenities),
       destinations: Object.fromEntries(preferences.destinations),
       types: Object.fromEntries(preferences.types),
       priceRanges: preferences.priceRanges,
-      lastUpdated: preferences.lastUpdated
+      lastUpdated: preferences.lastUpdated,
+      userId: preferences.userId
     };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toSave));
+    localStorage.setItem(storageKey, JSON.stringify(toSave));
   }
 
   /**
@@ -139,7 +164,7 @@ export class UserPreferencesService {
         const frequency = preferences.amenities.get(amenity) || 0;
         return sum + frequency;
       }, 0);
-      
+
       // Normalize amenity score (0-50 points)
       const maxAmenityFrequency = Math.max(...Array.from(preferences.amenities.values()), 1);
       score += (amenityScore / maxAmenityFrequency) * 50;
@@ -176,10 +201,10 @@ export class UserPreferencesService {
    */
   sortByRelevance(listings: ListingOverviewVM[]): ListingOverviewVM[] {
     const preferences = this.getPreferences();
-    
+
     // If no preferences yet, return original order
-    if (preferences.amenities.size === 0 && 
-        preferences.destinations.size === 0 && 
+    if (preferences.amenities.size === 0 &&
+        preferences.destinations.size === 0 &&
         preferences.types.size === 0) {
       return listings;
     }
@@ -212,8 +237,74 @@ export class UserPreferencesService {
    * Clear all preferences (reset)
    */
   clearPreferences(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
+    const storageKey = this.getStorageKey();
+    localStorage.removeItem(storageKey);
     this.initializePreferences();
+  }
+
+  /**
+   * Migrate guest preferences to logged-in user
+   * Call this after user login to preserve browsing history
+   */
+  migrateGuestPreferences(userId: string): void {
+    const guestKey = `${this.STORAGE_KEY_PREFIX}${this.GUEST_USER_ID}`;
+    const userKey = `${this.STORAGE_KEY_PREFIX}${userId}`;
+
+    // Get guest preferences
+    const guestData = localStorage.getItem(guestKey);
+    if (!guestData) return;
+
+    // Check if user already has preferences
+    const userData = localStorage.getItem(userKey);
+
+    if (!userData) {
+      // User has no preferences, migrate guest preferences
+      const parsed = JSON.parse(guestData);
+      parsed.userId = userId;
+      localStorage.setItem(userKey, JSON.stringify(parsed));
+    } else {
+      // User has preferences, merge with guest preferences (give priority to user's existing preferences)
+      const guestPrefs = JSON.parse(guestData);
+      const userPrefs = JSON.parse(userData);
+
+      // Merge amenities (add guest counts to user counts)
+      const mergedAmenities = { ...guestPrefs.amenities };
+      Object.entries(userPrefs.amenities || {}).forEach(([amenity, count]) => {
+        mergedAmenities[amenity] = (mergedAmenities[amenity] || 0) + (count as number);
+      });
+
+      // Merge destinations
+      const mergedDestinations = { ...guestPrefs.destinations };
+      Object.entries(userPrefs.destinations || {}).forEach(([dest, count]) => {
+        mergedDestinations[dest] = (mergedDestinations[dest] || 0) + (count as number);
+      });
+
+      // Merge types
+      const mergedTypes = { ...guestPrefs.types };
+      Object.entries(userPrefs.types || {}).forEach(([type, count]) => {
+        mergedTypes[type] = (mergedTypes[type] || 0) + (count as number);
+      });
+
+      // Merge price ranges (combine and keep last 20)
+      const mergedPriceRanges = [
+        ...(guestPrefs.priceRanges || []),
+        ...(userPrefs.priceRanges || [])
+      ].slice(-20);
+
+      // Save merged preferences
+      const merged = {
+        amenities: mergedAmenities,
+        destinations: mergedDestinations,
+        types: mergedTypes,
+        priceRanges: mergedPriceRanges,
+        lastUpdated: Date.now(),
+        userId: userId
+      };
+      localStorage.setItem(userKey, JSON.stringify(merged));
+    }
+
+    // Remove guest preferences after migration
+    localStorage.removeItem(guestKey);
   }
 
   /**
@@ -226,8 +317,8 @@ export class UserPreferencesService {
       topAmenities: this.getTopPreferredAmenities(10),
       totalDestinations: preferences.destinations.size,
       totalTypes: preferences.types.size,
-      avgPrice: preferences.priceRanges.length > 0 
-        ? preferences.priceRanges.reduce((a, b) => a + b, 0) / preferences.priceRanges.length 
+      avgPrice: preferences.priceRanges.length > 0
+        ? preferences.priceRanges.reduce((a, b) => a + b, 0) / preferences.priceRanges.length
         : 0,
       lastUpdated: new Date(preferences.lastUpdated).toISOString()
     };

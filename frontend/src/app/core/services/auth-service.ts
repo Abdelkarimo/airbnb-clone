@@ -1,9 +1,10 @@
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { BehaviorSubject, from, Observable, switchMap, tap } from 'rxjs';
 import { AuthResponse, LoginCredentials, RegisterData, User, UserRole } from '../../features/auth/authModels';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { UserPreferencesService } from './user-preferences/user-preferences.service';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
@@ -160,6 +161,19 @@ export class AuthService {
       localStorage.setItem(this.TOKEN_KEY, token);
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
       this.currentUserSubject.next(user);
+
+      // Migrate guest preferences to logged-in user
+      if (user.id) {
+        // Use setTimeout to avoid circular dependency issues
+        setTimeout(() => {
+          try {
+            const userPreferencesService = inject(UserPreferencesService);
+            userPreferencesService.migrateGuestPreferences(user.id);
+          } catch (e) {
+            console.warn('Could not migrate preferences:', e);
+          }
+        }, 0);
+      }
     }
   }
 /**
