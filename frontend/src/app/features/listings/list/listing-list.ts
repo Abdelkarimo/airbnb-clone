@@ -20,7 +20,7 @@ export class ListingsList implements OnInit {
   loading = signal<boolean>(false);
   error = signal<string>('');
   currentPage = signal<number>(1);
-  pageSize = 8;
+  pageSize = 6;
   totalCount = signal<number>(0);
 
   // search + filters
@@ -32,7 +32,10 @@ export class ListingsList implements OnInit {
   isApproved = signal<string>(''); // '', approved, not-approved
 
   // computed
-  totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
+  totalPages = computed(() => {
+    const filteredCount = this.filtered().length;
+    return Math.max(1, Math.ceil(filteredCount / this.pageSize));
+  });
 
   paginationPages = computed<(number | string)[]>(() => {
     const total = this.totalPages();
@@ -55,11 +58,20 @@ export class ListingsList implements OnInit {
     return pages;
   });
 
-  pageNumbers = computed<number[]>(() => {
-    const tp = this.totalPages();
-    const pages: number[] = [];
-    for (let i = 1; i <= tp; i++) pages.push(i);
-    return pages;
+  destinations = computed<string[]>(() => {
+    const allDestinations = this.listings()
+      .map(l => l.destination)
+      .filter((dest): dest is string => !!dest);
+
+    return [...new Set(allDestinations)].sort((a, b) => a.localeCompare(b));
+  });
+
+  types = computed<string[]>(() => {
+    const allTypes = this.listings()
+      .map(l => l.type)
+      .filter((type): type is string => !!type);
+
+    return [...new Set(allTypes)].sort((a, b) => a.localeCompare(b));
   });
 
   // Paginated data for current page
@@ -69,23 +81,6 @@ export class ListingsList implements OnInit {
     const endIndex = startIndex + this.pageSize;
     return filteredData.slice(startIndex, endIndex);
   });
-
-  destinations = computed<string[]>(() => {
-    const allDestinations = this.listings()
-      .map(l => l.destination)
-      .filter((dest): dest is string => !!dest);
-    
-    return [...new Set(allDestinations)].sort((a, b) => a.localeCompare(b));
-  });
-
-  types = computed<string[]>(() => {
-    const allTypes = this.listings()
-      .map(l => l.type)
-      .filter((type): type is string => !!type);
-    
-    return [...new Set(allTypes)].sort((a, b) => a.localeCompare(b));
-  });
-Math: any;
 
   private normalize(input?: string): string {
     if (!input) return '';
@@ -215,14 +210,12 @@ Math: any;
   nextPage() {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(p => p + 1);
-      this.loadListings();
     }
   }
 
   prevPage() {
     if (this.currentPage() > 1) {
       this.currentPage.update(p => p - 1);
-      this.loadListings();
     }
   }
 

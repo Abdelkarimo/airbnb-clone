@@ -2,7 +2,7 @@
 
 .broker-detail-container {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(220, 20, 60, 0.1) 100%),
-              url('/bg1.png') center/cover fixed;
+    url('/bg1.png') center/cover fixed;
   min-height: 100vh;
   position: relative;
 }
@@ -18,7 +18,7 @@
   z-index: 1;
 }
 
-.broker-detail-container > * {
+.broker-detail-container>* {
   position: relative;
   z-index: 2;
 }
@@ -64,13 +64,29 @@
 }
 
 @keyframes loadingFloat {
-  0%, 100% { transform: translateY(0px) rotateY(0deg); }
-  50% { transform: translateY(-15px) rotateY(10deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotateY(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotateY(10deg);
+  }
 }
 
 @keyframes loadingPulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.2); opacity: 0.8; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
 }
 
 .loading-content h3 {
@@ -98,8 +114,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== ERROR STATE ===== */
@@ -140,14 +161,31 @@
 }
 
 @keyframes errorSway {
-  0%, 100% { transform: translateX(0px); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 @keyframes errorGlow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .error-content h3 {
@@ -210,14 +248,33 @@
 }
 
 @keyframes detailFloat {
-  0%, 100% { transform: translateY(0px) rotateY(0deg); }
-  33% { transform: translateY(-10px) rotateY(8deg); }
-  66% { transform: translateY(5px) rotateY(-5deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotateY(0deg);
+  }
+
+  33% {
+    transform: translateY(-10px) rotateY(8deg);
+  }
+
+  66% {
+    transform: translateY(5px) rotateY(-5deg);
+  }
 }
 
 @keyframes detailGlow {
-  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
-  50% { transform: scale(1.15) rotate(180deg); opacity: 0.8; }
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.15) rotate(180deg);
+    opacity: 0.8;
+  }
 }
 
 /* ===== PROPERTY HEADER ===== */
@@ -886,6 +943,7 @@
 }
 
 @media (max-width: 576px) {
+
   .broker-showcase-section,
   .broker-content-section,
   .broker-location-section {
@@ -917,8 +975,15 @@
 /* ===== HOVER ANIMATIONS ===== */
 
 @keyframes cardHover {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .broker-description-card:hover,
@@ -1986,5 +2051,417 @@ textarea.glass-input {
 
   .reviews-section .glass-card {
     padding: 1.2rem;
+  }
+}
+
+
+/* ===== REVIEWS SECTION ===== */
+
+.broker-reviews-section {
+  padding: 2rem 0;
+  background: white;
+  position: relative;
+}
+
+.broker-reviews-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(220, 20, 60, 0.1);
+  margin-bottom: 2rem;
+}
+
+/* Review Header */
+.review-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(220, 20, 60, 0.1);
+}
+
+.review-header-main h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--broker-black);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.review-header-main h2 i {
+  color: var(--broker-red);
+  font-size: 1.8rem;
+}
+
+/* Overall Rating */
+.broker-overall-rating {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  padding: 1.5rem;
+  background: rgba(220, 20, 60, 0.05);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(220, 20, 60, 0.1);
+}
+
+.rating-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.rating-number-main {
+  font-family: 'Poppins', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--broker-black);
+  line-height: 1;
+}
+
+.star-display-main {
+  display: flex;
+  gap: 0.1rem;
+  margin: 0.5rem 0;
+}
+
+.star-display-main i {
+  color: #fbbf24;
+  font-size: 1.2rem;
+}
+
+.review-count {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.rating-breakdown {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rating-label {
+  font-size: 0.9rem;
+  color: var(--broker-black);
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.rating-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(220, 20, 60, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rating-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--broker-red), #ff6b6b);
+  border-radius: 4px;
+}
+
+.rating-count {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  min-width: 30px;
+}
+
+/* Review Form */
+.broker-review-form {
+  background: rgba(220, 20, 60, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(220, 20, 60, 0.1);
+}
+
+.broker-review-form h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--broker-black);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.broker-review-form h3 i {
+  color: var(--broker-red);
+}
+
+.broker-rating-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(220, 20, 60, 0.1);
+}
+
+.broker-rating-selector label {
+  font-weight: 500;
+  color: var(--broker-black);
+  margin: 0;
+}
+
+.broker-star-btns {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.broker-star-btn {
+  background: none;
+  border: none;
+  color: #e5e7eb;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  transition: all 0.3s ease;
+}
+
+.broker-star-btn:hover {
+  transform: scale(1.2);
+  color: #fbbf24;
+}
+
+.broker-star-btn.active {
+  color: #fbbf24;
+}
+
+.broker-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.broker-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--broker-black);
+}
+
+.broker-textarea {
+  width: 100%;
+  padding: 1rem;
+  background: white;
+  border: 1px solid rgba(220, 20, 60, 0.1);
+  border-radius: 12px;
+  font-size: 1rem;
+  color: var(--broker-black);
+  transition: all 0.3s ease;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.broker-textarea:focus {
+  outline: none;
+  border-color: var(--broker-red);
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+}
+
+.broker-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+/* Review Cards */
+.broker-review-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.broker-review-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(220, 20, 60, 0.1);
+  transition: all 0.3s ease;
+}
+
+.broker-review-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 20, 60, 0.1);
+}
+
+.broker-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.broker-reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.broker-reviewer-avatar {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--broker-red), #ff6b6b);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.broker-reviewer-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.broker-reviewer-name {
+  font-weight: 600;
+  color: var(--broker-black);
+  margin-bottom: 0.25rem;
+}
+
+.broker-review-date {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.broker-review-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.broker-review-stars {
+  display: flex;
+  gap: 0.1rem;
+  color: #fbbf24;
+  font-size: 0.9rem;
+}
+
+.broker-review-rating-value {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.broker-review-content {
+  margin-top: 1rem;
+}
+
+.broker-review-comment {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #4a5568;
+  margin: 0;
+}
+
+/* Load More Button */
+.broker-load-more {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .broker-reviews-card {
+    padding: 1.5rem;
+  }
+
+  .broker-overall-rating {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .rating-summary {
+    align-items: center;
+  }
+
+  .broker-review-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .broker-review-rating {
+    align-items: flex-start;
+  }
+
+  .review-header-main {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .broker-review-form {
+    padding: 1.5rem;
+  }
+
+  .broker-rating-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .broker-form-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .broker-reviews-section {
+    padding: 1rem 0;
+  }
+
+  .broker-reviewer-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .rating-number-main {
+    font-size: 2.5rem;
+  }
+
+  .star-display-main i {
+    font-size: 1rem;
+  }
+
+  .breakdown-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .rating-bar {
+    width: 100%;
+  }
+
+  .broker-star-btn {
+    font-size: 1.5rem;
   }
 }

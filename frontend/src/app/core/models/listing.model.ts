@@ -115,6 +115,7 @@ export interface ListingOverviewVM {
   viewCount: number;
   favoriteCount: number;
   bookingCount: number;
+  // amenities: string[];
 }
 
 export interface ListingsResponse<T> {
