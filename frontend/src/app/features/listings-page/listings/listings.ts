@@ -7,58 +7,55 @@ import { ListingOverviewVM } from '../../../core/models/listing.model';
 import { ListingService } from '../../../core/services/listings/listing.service';
 import { ListingCard } from '../listing-card/listing-card';
 import { FavoriteStoreService } from '../../../core/services/favoriteService/favorite-store-service';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { UserPreferencesService } from '../../../core/services/user-preferences/user-preferences.service';
+import { PersonalizationBadge } from '../../../shared/components/personalization-badge/personalization-badge';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ListingCard, ReactiveFormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, RouterModule, ListingCard, ReactiveFormsModule, TranslateModule, PersonalizationBadge],
   templateUrl: './listings.html',
   styleUrls: ['./listings.css']
 })
 export class Listings implements OnInit {
-  // raw data
-  listings = signal<ListingOverviewVM[]>([]);
-  totalCount = signal<number>(0);
+  // raw data - all listings loaded at once
+  allListings = signal<ListingOverviewVM[]>([]);
   loading = signal<boolean>(false);
   error = signal<string>('');
 
-  // pagination
+  // pagination for filtered results
   currentPage = signal<number>(1);
   pageSize = signal<number>(12);
-  
+
   // filters (signals)
   search = signal<string>('');
-  location = signal<string>('');
+  destination = signal<string>('');  // Changed from location to destination
+  type = signal<string>('');
   maxPrice = signal<number | null>(null);
   minRating = signal<number | null>(null);
-
-  // amenities (form)
-  form: FormGroup;
+  amenities = signal<string[]>([]);
 
   constructor(
     private listingService: ListingService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private fb: FormBuilder
-    ,
-    public favoriteStore: FavoriteStoreService
-  ) {
-    this.form = this.fb.group({
-      amenities: [[]]
-    });
-  }
+    public favoriteStore: FavoriteStoreService,
+    private userPreferences: UserPreferencesService
+  ) {}
 
   onListingFavoriteChanged(payload: { listingId: number; isFavorited: boolean }) {
-    // Parent receives event from child listing card when favorite toggles.
-    // Keep UI in sync: ensure local listings signal doesn't contain stale favorite markers.
     try {
-      const idx = this.listings().findIndex(l => l.id === payload.listingId);
+      const idx = this.allListings().findIndex(l => l.id === payload.listingId);
       if (idx >= 0) {
-        const copy = [...this.listings()];
-        // attach a transient isFavorited flag so the card can pick it up if needed
+        const copy = [...this.allListings()];
         (copy[idx] as any).isFavorited = payload.isFavorited;
-        this.listings.set(copy);
+        this.allListings.set(copy);
+
+        // Track favorite in user preferences (if favorited)
+        if (payload.isFavorited) {
+          this.userPreferences.trackFavorite(copy[idx]);
+        }
       }
     } catch (e) { console.warn('Failed to update listing favorite state in parent', e); }
   }
@@ -66,25 +63,32 @@ export class Listings implements OnInit {
   // list of amenities
   amenitiesList = [
     'Wi-Fi', 'Pool', 'Air Conditioning', 'Kitchen',
-    'Washer', 'Dryer', 'TV', 'Heating', 'Parking',
-    // 'Pet Friendly', 'Gym', 'Hot Tub', 'Fireplace', 'Breakfast',
-    // 'Elevator', 'Wheelchair Accessible', 'Garden', 'Balcony', 'Sauna'
+    'Washer', 'Dryer', 'TV', 'Heating', 'Parking'
   ];
 
   toggleAmenity(amenity: string): void {
-    const currentValue = this.form.get('amenities')?.value || [];
-    const amenities = Array.isArray(currentValue) ? [...currentValue] : [];
-    const index = amenities.indexOf(amenity);
+    const currentAmenities = [...this.amenities()];
+    const index = currentAmenities.indexOf(amenity);
 
-    if (index > -1) amenities.splice(index, 1);
-    else amenities.push(amenity);
+    if (index > -1) {
+      currentAmenities.splice(index, 1);
+    } else {
+      currentAmenities.push(amenity);
+    }
 
-    this.form.patchValue({ amenities });
+    this.amenities.set(currentAmenities);
+
+    // Track amenity filter in user preferences
+    if (currentAmenities.length > 0) {
+      this.userPreferences.trackAmenityFilter(currentAmenities);
+    }
+
+    // Reset to first page when filters change
+    this.currentPage.set(1);
   }
 
   isAmenitySelected(amenity: string): boolean {
-    const amenities: string[] = this.form.get('amenities')?.value || [];
-    return amenities.includes(amenity);
+    return this.amenities().includes(amenity);
   }
 
   // arabic/english normalization
@@ -105,62 +109,113 @@ export class Listings implements OnInit {
     return s;
   }
 
-  // computed list of unique locations
-  locations = computed(() => {
-    const data = this.listings();
+  // computed list of unique destinations from all data
+  destinations = computed(() => {
+    const data = this.allListings();
     const set = new Set<string>();
-    data.forEach(l => set.add(l.location));
-    return Array.from(set);
+    data.forEach(l => {
+      if (l.destination && l.destination.trim()) {
+        set.add(l.destination);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   });
 
-  // computed filtered list (client-side filtering after server load)
+  // computed list of unique types from all data
+  types = computed(() => {
+    const data = this.allListings();
+    const set = new Set<string>();
+    data.forEach(l => {
+      if (l.type && l.type.trim()) {
+        set.add(l.type);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  });
+
+  // computed filtered list (client-side filtering on ALL data)
   filtered = computed<ListingOverviewVM[]>(() => {
-    const data = this.listings();
+    const data = this.allListings();
     if (!data || !Array.isArray(data)) return [];
 
     const rawQuery = this.search().trim();
-    const rawLoc = this.location().trim();
+    const rawDest = this.destination().trim();
+    const rawType = this.type().trim();
     const maxP = this.maxPrice();
     const minR = this.minRating();
+    const selectedAmenities = this.amenities();
 
     const q = this.normalize(rawQuery);
-    const locNormalized = this.normalize(rawLoc);
+    const destNormalized = this.normalize(rawDest);
+    const typeNormalized = this.normalize(rawType);
 
-    return data.filter(l => {
+    const filtered = data.filter(l => {
       const title = this.normalize(l.title);
-      const locationVal = this.normalize(l.location);
+      const destinationVal = this.normalize(l.destination);
+      const typeVal = this.normalize(l.type);
       const description = this.normalize(l.description ?? '');
 
       const matchesSearch =
         !q ||
         title.includes(q) ||
-        locationVal.includes(q) ||
+        destinationVal.includes(q) ||
         description.includes(q);
 
-      const matchesLocation =
-        !locNormalized || locationVal.includes(locNormalized);
+      const matchesDestination =
+        !destNormalized || destinationVal.includes(destNormalized);
+
+      const matchesType =
+        !typeNormalized || typeVal.includes(typeNormalized);
 
       const priceOk = maxP === null || l.pricePerNight <= maxP;
 
       const ratingOk =
         minR === null || (l.averageRating ?? 0) >= minR;
 
-      return matchesSearch && matchesLocation && priceOk && ratingOk;
+      // Amenities filter - case-insensitive comparison
+      const amenitiesOk = selectedAmenities.length === 0 ||
+        selectedAmenities.every((amenity: string) => {
+          const normalizedAmenity = amenity.toLowerCase().replace(/[^a-z0-9]/g, '');
+          return l.amenities && l.amenities.some((listingAmenity: string) => {
+            const normalizedListingAmenity = listingAmenity.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return normalizedListingAmenity === normalizedAmenity ||
+                   normalizedListingAmenity.includes(normalizedAmenity) ||
+                   normalizedAmenity.includes(normalizedListingAmenity);
+          });
+        });
+
+      return matchesSearch && matchesDestination && matchesType && priceOk && ratingOk && amenitiesOk;
     });
+
+    // Apply personalized sorting based on user preferences
+    return this.userPreferences.sortByRelevance(filtered);
   });
 
-  // computed pagination values
+  // computed paginated results from filtered data
+  paginatedListings = computed(() => {
+    const filteredData = this.filtered();
+    const pageSize = this.pageSize();
+    const currentPage = this.currentPage();
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    return filteredData.slice(startIndex, endIndex);
+  });
+
+  // computed pagination values based on filtered results
+  totalFilteredCount = computed(() => this.filtered().length);
+
   totalPages = computed(() => {
-    const total = this.totalCount();
+    const total = this.totalFilteredCount();
     const pageSize = this.pageSize();
     return total === 0 ? 1 : Math.ceil(total / pageSize);
   });
-  
+
   paginationPages = computed(() => {
     const total = this.totalPages();
     const current = this.currentPage();
     const pages: (number | string)[] = [];
-    
+
     if (total <= 7) {
       for (let i = 1; i <= total; i++) {
         pages.push(i);
@@ -168,46 +223,48 @@ export class Listings implements OnInit {
     } else {
       pages.push(1);
       if (current > 3) pages.push('...');
-      
+
       const start = Math.max(2, current - 1);
       const end = Math.min(total - 1, current + 1);
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
-      
+
       if (current < total - 2) pages.push('...');
       pages.push(total);
     }
-    
+
     return pages;
   });
 
   ngOnInit(): void {
-    this.loadListings();
+    this.loadAllListings();
 
     // refresh on navigation
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd && this.router.url.startsWith('/listings')) {
-        this.loadListings();
+        this.loadAllListings();
       }
     });
   }
 
-  loadListings(): void {
+  viewOnMap() {
+    this.router.navigate(['/map']);
+  }
+
+  loadAllListings(): void {
     this.loading.set(true);
     this.error.set('');
 
-    this.listingService.getPaged(this.currentPage(), this.pageSize()).subscribe({
+    // Load listings with proper pagination (backend max is 100 per page)
+    this.listingService.getPaged(1, 100).subscribe({
       next: (res) => {
-        console.log('Listings Response:', res);
-        this.listings.set(res.data || []);
-        const total = res.totalCount || res.data?.length || 0;
-        this.totalCount.set(total);
-        console.log('Total count set to:', total);
+        console.log('All Listings Response:', res);
+        this.allListings.set(res.data || []);
+        console.log('Total listings loaded:', res.data?.length || 0);
         this.loading.set(false);
         this.cdr.markForCheck();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err) => {
         console.error('Error loading listings:', err);
@@ -221,9 +278,10 @@ export class Listings implements OnInit {
   goToPage(page: number | string): void {
     if (typeof page === 'string') return;
     if (page < 1 || page > this.totalPages()) return;
-    
+
     this.currentPage.set(page);
-    this.loadListings();
+    // No need to reload data, just update the page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   nextPage(): void {
@@ -241,27 +299,50 @@ export class Listings implements OnInit {
     }
   }
 
-  resetFilters() {
-    this.search.set('');
-    this.location.set('');
-    this.maxPrice.set(null);
-    this.minRating.set(null);
-    this.form.patchValue({ amenities: [] });
+  // Reset to first page when filters change
+  onSearchChange(): void {
     this.currentPage.set(1);
-    this.loadListings();
+    // Track search interaction if there's a query
+    const query = this.search().trim();
+    if (query.length > 0) {
+      // Track first few results as "searched for"
+      const topResults = this.filtered().slice(0, 3);
+      topResults.forEach(listing => {
+        this.userPreferences.trackListingInteraction(listing, 0.5);
+      });
+    }
   }
 
-  onDelete(id: number) {
-    if (!confirm('Delete this listing?')) return;
+  onDestinationChange(): void {
+    this.currentPage.set(1);
+  }
 
-    this.listingService.delete(id).subscribe({
-      next: () => {
-        this.listings.update(list => list.filter(l => l.id !== id));
-      },
-      error: () => {
-        this.error.set('Failed to delete listing');
-      }
-    });
+  onTypeChange(): void {
+    this.currentPage.set(1);
+  }
+
+  onPriceChange(): void {
+    this.currentPage.set(1);
+  }
+
+  onRatingChange(): void {
+    this.currentPage.set(1);
+  }
+
+  resetFilters() {
+    this.search.set('');
+    this.destination.set('');
+    this.type.set('');
+    this.maxPrice.set(null);
+    this.minRating.set(null);
+    this.amenities.set([]);
+    this.currentPage.set(1);
+    // No need to reload data, filters are applied client-side
+  }
+
+  // Get relevance score for a specific listing (0-100)
+  getRelevanceScore(listing: ListingOverviewVM): number {
+    return this.userPreferences.calculateRelevanceScore(listing);
   }
 
   trackById(index: number, item: ListingOverviewVM): number {
