@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
-import { ListingCard } from '../../listings-page/listing-card/listing-card';
+import { ListingCard } from '../../listings-page-user-View/listing-card/listing-card';
 import { FavoriteStoreService } from '../../../core/services/favoriteService/favorite-store-service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
