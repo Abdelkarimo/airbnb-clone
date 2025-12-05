@@ -19,9 +19,6 @@ namespace PL.Controllers
         {
             _bookingService = bookingService;
             _logger = logger;
-            _emailService = emailService;
-            _emailMappingService = emailMappingService;
-            _uow = uow;
         }
 
         [HttpPost]
