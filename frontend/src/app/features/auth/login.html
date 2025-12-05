@@ -1,9 +1,120 @@
-<div class="auth-card">
-  <h3>Login</h3>
-  <form (ngSubmit)="submit()" class="auth-form">
-    <input name="email" [(ngModel)]="email" placeholder="Email" class="auth-input" />
-    <input name="password" [(ngModel)]="password" type="password" placeholder="Password" class="auth-input" />
-    <button type="submit" class="auth-btn">Login</button>
-  </form>
-  <div class="links">No account? <a routerLink="/auth/register">Register</a></div>
+<div class="broker-auth-container">
+  <div class="broker-auth-wrapper">
+    <!-- Character Section -->
+    <div class="broker-character-section">
+      <div class="auth-character-container">
+        <img src="/3.png" alt="The Broker" class="auth-character">
+        <div class="auth-accent-circle"></div>
+      </div>
+      <div class="auth-branding">
+        <h1 class="auth-title">The Broker</h1>
+        <h2 class="auth-title-ar">السمسارة</h2>
+        <p class="auth-subtitle">{{ 'auth.welcomeBack' | translate }}</p>
+      </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="broker-auth-card">
+      <h3 class="auth-card-title">{{ 'navbar.logIn' | translate }}</h3>
+
+      <!-- Login Mode Tabs -->
+      <div class="login-mode-tabs">
+        <button 
+          type="button"
+          class="tab-btn"
+          [class.active]="isLoginMode === 'email'"
+          (click)="switchToEmailLogin()"
+          [disabled]="isLoading">
+          📧 {{'faceCapture.Email' | translate }}
+        </button>
+        <button 
+          type="button"
+          class="tab-btn"
+          [class.active]="isLoginMode === 'face'"
+          (click)="switchToFaceLogin()"
+          [disabled]="isLoading">
+          📸 {{ 'faceCapture.FaceID' | translate }}
+        </button>
+      </div>
+
+      <!-- Email Login Form -->
+      <form *ngIf="isLoginMode === 'email'" (ngSubmit)="submit()" class="broker-auth-form">
+        <div class="input-group">
+          <i class="bi bi-envelope"></i>
+          <input 
+            name="email" 
+            [(ngModel)]="email" 
+            placeholder="{{ 'auth.email' | translate }}" 
+            class="broker-input" 
+            type="email"
+            [disabled]="isLoading" />
+        </div>
+        <div class="input-group">
+          <i class="bi bi-lock"></i>
+          <input 
+            name="password" 
+            [(ngModel)]="password" 
+            type="password" 
+            placeholder="{{ 'auth.password' | translate }}" 
+            class="broker-input"
+            [disabled]="isLoading" />
+        </div>
+
+        <div *ngIf="errorMessage" class="auth-error">
+          <i class="bi bi-exclamation-triangle"></i>
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="auth-success">
+          <i class="bi bi-check-circle"></i>
+          {{ successMessage }}
+        </div>
+
+        <button type="submit" class="btn-broker" [disabled]="isLoading">
+          <span *ngIf="!isLoading">{{ 'navbar.logIn' | translate }}</span>
+          <span *ngIf="isLoading" class="button-loading">
+            <span class="spinner"></span>
+            {{ 'common.loading' | translate }}
+          </span>
+        </button>
+      </form>
+
+      <!-- Face Login Notice -->
+      <div *ngIf="isLoginMode === 'face'" class="face-login-container">
+        <div class="face-login-notice">
+          <div class="face-login-icon">📸</div>
+          <h4>{{ 'auth.faceLoginReady' | translate }}</h4>
+          <p>{{ 'auth.faceLoginHint' | translate }}</p>
+          
+          <div *ngIf="errorMessage" class="auth-error">
+            <i class="bi bi-exclamation-triangle"></i>
+            {{ errorMessage }}
+          </div>
+
+          <div *ngIf="successMessage" class="auth-success">
+            <i class="bi bi-check-circle"></i>
+            {{ successMessage }}
+          </div>
+
+          <div class="loading-state" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <p>{{ 'auth.processingFace' | translate }}</p>
+          </div>
+
+          <p class="face-login-hint">{{ 'auth.switchTabHint' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="auth-links">
+        {{ 'auth.dontHaveAccount' | translate }}
+        <a routerLink="/auth/register" class="broker-link">{{ 'navbar.signUp' | translate }}</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Face Capture Modal -->
+  <app-face-capture
+    (frameCapture)="onFaceCaptured($event)"
+    (cancel)="onFaceCaptureCancelled()">
+  </app-face-capture>
 </div>

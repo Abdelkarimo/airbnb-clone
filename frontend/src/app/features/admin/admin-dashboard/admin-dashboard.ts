@@ -130,7 +130,7 @@ export class AdminDashboard implements OnInit {
   }
 
   deactivateUser(userId: string): void {
-    if (!confirm('Deactivate this user?')) return;
+    //if (!confirm('Deactivate this user?')) return;
     this.adminService.deactivateUser(userId).subscribe({
       next: () => this.loadUsers(),
       error: (error: any) => this.handleError('deactivating user', error),

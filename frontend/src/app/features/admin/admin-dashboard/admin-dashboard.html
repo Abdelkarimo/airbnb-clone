@@ -112,7 +112,7 @@
             </div>
             <div class="stat-icon">⏳</div>
           </div>
-          <p class="stat-number">{{ stats.pendingListingsCount || 0 }}</p>
+          <p class="stat-number">{{ stats.pendingListingsCount }}</p>
           <p class="stat-subtitle">
             Awaiting review
           </p>
@@ -125,7 +125,7 @@
             </div>
             <div class="stat-icon">🎯</div>
           </div>
-          <p class="stat-number">{{ stats.activePromotionsCount || 0 }}</p>
+          <p class="stat-number">{{ stats.activePromotionsCount }}</p>
           <p class="stat-subtitle">
             Currently running
           </p>
@@ -185,7 +185,7 @@
               <th>Role</th>
               <th>Bookings</th>
               <th>Status</th>
-              <th>Joined</th>
+              <!-- <th>Joined</th> -->
               <th>Actions</th>
             </tr>
           </thead>
@@ -201,13 +201,19 @@
                   {{ user.isActive ? '✓ Active' : '✗ Inactive' }}
                 </span>
               </td>
-              <td>{{ user.createdAt | date:'short' }}</td>
+              <!-- <td>{{ user.createdAt | date:'short' }}</td> -->
               <td>
                 <button 
                   *ngIf="user.isActive"
                   (click)="deactivateUser(user.id)"
                   class="glass-btn btn-danger btn-sm">
                   Deactivate
+                </button>
+                <button 
+                  *ngIf="!user.isActive"
+                  (click)="deactivateUser(user.id)"
+                  class="glass-btn btn-success btn-sm">
+                  Activate
                 </button>
               </td>
             </tr>
@@ -296,36 +302,53 @@
               <td>⭐ {{ listing.reviewsCount || 0 }}</td>
               <td class="actions-cell">
                 <div class="action-buttons">
-                  <button 
-                    *ngIf="listing.status === 'pending'"
-                    (click)="approveListing(listing.id)"
-                    class="glass-btn btn-success btn-xs">
-                    ✓ Approve
-                  </button>
-                  <button 
-                    *ngIf="listing.status === 'pending'"
-                    (click)="rejectListing(listing.id)"
-                    class="glass-btn btn-danger btn-xs">
-                    ✗ Reject
-                  </button>
-                  <button 
-                    *ngIf="listing.status === 'approved' && !listing.isPromoted"
-                    (click)="promoteListing(listing.id)"
-                    class="glass-btn btn-info btn-xs">
-                    📈 Promote
-                  </button>
-                  <button 
-                    *ngIf="listing.isPromoted"
-                    (click)="unpromoteListing(listing.id)"
-                    class="glass-btn btn-warning btn-xs">
-                    Stop Promo
-                  </button>
-                  <button 
-                    *ngIf="listing.isPromoted"
-                    (click)="extendPromotion(listing.id)"
-                    class="glass-btn btn-info btn-xs">
-                    🔄 Extend
-                  </button>
+                <button 
+                  *ngIf="listing.status === 'pending'"
+                  (click)="approveListing(listing.id)"
+                  class="glass-btn btn-success btn-xs">
+                  ✓ Approve
+                </button>
+                <button 
+                  *ngIf="listing.status === 'pending'"
+                  (click)="rejectListing(listing.id)"
+                  class="glass-btn btn-danger btn-xs">
+                  ✗ Reject
+                </button>
+
+                <!-- Show Reject for already approved listings -->
+                <button
+                  *ngIf="listing.status === 'approved'"
+                  (click)="rejectListing(listing.id)"
+                  class="glass-btn btn-danger btn-xs">
+                  ✗ Reject
+                </button>
+
+                <!-- Show Approve for rejected listings -->
+                <button
+                  *ngIf="listing.status === 'rejected'"
+                  (click)="approveListing(listing.id)"
+                  class="glass-btn btn-success btn-xs">
+                  ✓ Approve
+                </button>
+
+                <button 
+                  *ngIf="listing.status === 'approved' && !listing.isPromoted"
+                  (click)="promoteListing(listing.id)"
+                  class="glass-btn btn-info btn-xs">
+                  📈 Promote
+                </button>
+                <button 
+                  *ngIf="listing.isPromoted"
+                  (click)="unpromoteListing(listing.id)"
+                  class="glass-btn btn-warning btn-xs">
+                  Stop Promo
+                </button>
+                <button 
+                  *ngIf="listing.isPromoted"
+                  (click)="extendPromotion(listing.id)"
+                  class="glass-btn btn-info btn-xs">
+                  🔄 Extend
+                </button>
                 </div>
               </td>
             </tr>
