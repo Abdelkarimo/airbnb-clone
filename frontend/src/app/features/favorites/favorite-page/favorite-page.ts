@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { FavoriteListingVM, FavoriteVM } from '../../../core/models/favorite';
 import { ListingOverviewVM } from '../../../core/models/listing.model';
+import { ListingService } from '../../../core/services/listings/listing.service';
 
 @Component({
   selector: 'app-favorite-page',
@@ -21,6 +22,8 @@ export class FavoritePage implements OnInit {
   private router = inject(Router);
   private api = inject(FavoriteService);
   private favoriteStore = inject(FavoriteStoreService);
+  private listingService = inject(ListingService);
+
 
   favorites: FavoriteVM[] = [];
   listings: ListingOverviewVM[] = [];
@@ -36,10 +39,21 @@ export class FavoritePage implements OnInit {
       next: (favorites) => {
         this.favorites = favorites;
         // Convert FavoriteListingVM to ListingOverviewVM format
-        this.listings = favorites
-          .filter(fav => fav.listing)
-          .map(fav => this.convertToListingOverview(fav.listing!));
+        this.listings = [];
 
+        favorites.forEach(fav => {
+          if (!fav.listing) return;
+          const overview = this.convertToListingOverview(fav.listing);
+          this.listings.push(overview);
+          this.listingService.getById(fav.listingId).subscribe({
+            next: (res) => {
+              if (!res.isError && res.data) {
+                overview.mainImageUrl = res.data.mainImageUrl; 
+              }
+            },
+            error: () => { }
+          });
+        });
         // Fetch favorite count for each listing
         this.listings.forEach(listing => {
           this.api.getListingFavoritesCount(listing.id).subscribe({
@@ -80,12 +94,12 @@ export class FavoritePage implements OnInit {
       title: favListing.title,
       pricePerNight: favListing.pricePerNight ?? 0,
       location: favListing.location ?? '',
-      mainImageUrl: this.normalizeImageUrl(
-        favListing.mainImageUrl ||
-        (favListing as any).MainImageUrl ||
-        (favListing as any).imageUrl ||
-        (favListing as any).ImageUrl
-      ), averageRating: favListing.averageRating ?? 0,
+      mainImageUrl: this.listingService['normalizeImageUrl'](
+        favListing.mainImageUrl?.startsWith('/')
+          ? favListing.mainImageUrl
+          : `/${favListing.mainImageUrl}`
+      ),
+      averageRating: favListing.averageRating ?? 0,
       reviewCount: favListing.reviewCount ?? 0,
       isApproved: favListing.isApproved ?? false,
       description: favListing.description ?? '',
@@ -279,12 +293,5 @@ export class FavoritePage implements OnInit {
         console.error(err);
       }
     });
-  }
-
-  normalizeImageUrl(url?: string): string {
-    if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    if (url.startsWith('/')) return `http://localhost:5235${url}`;
-    return `http://localhost:5235/${url}`;
   }
 }
