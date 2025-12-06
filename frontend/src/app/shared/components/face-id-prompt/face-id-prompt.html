@@ -1,0 +1,32 @@
+<div class="face-id-banner" *ngIf="showPrompt && !isDismissed">
+  <div class="banner-container">
+    <div class="banner-content">
+      <div class="banner-icon">
+        <i class="bi bi-shield-lock"></i>
+      </div>
+      <div class="banner-text">
+        <h4 class="banner-title">{{ 'faceId.setupPromptTitle' | translate }}</h4>
+        <p class="banner-message">{{ 'faceId.setupPromptMessage' | translate }}</p>
+      </div>
+      <div class="banner-actions">
+        <button class="btn-setup" (click)="setupFaceId()" [disabled]="isLoading">
+          <i class="bi bi-fingerprint me-2"></i>
+          {{ 'faceId.setupNow' | translate }}
+        </button>
+        <button class="btn-dismiss" (click)="dismissPrompt()" [disabled]="isLoading">
+          {{ 'common.later' | translate }}
+        </button>
+      </div>
+    </div>
+    <button class="banner-close" (click)="dismissPrompt()" aria-label="Close">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Face Capture Component -->
+<app-face-capture
+  #faceCapture
+  (faceCaptured)="onFaceCaptured($event)"
+  (cancelled)="onFaceCaptureCancelled()"
+></app-face-capture>

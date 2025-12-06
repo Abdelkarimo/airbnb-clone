@@ -129,7 +129,8 @@ namespace BLL.Services.Impelementation
                         UserName = user.UserName!,
                         FullName = user.FullName,
                         Role = role,
-                        FirebaseUid = user.FirebaseUid // This will be set correctly
+                        FirebaseUid = user.FirebaseUid, // This will be set correctly
+                        HasFaceId = false // New users don't have face ID yet
                     }
                 };
 
@@ -197,6 +198,9 @@ namespace BLL.Services.Impelementation
 
             var token = _tokenService.GenerateToken(user.Id, role, user.FullName);
             
+            // Check if user has face ID registered
+            var hasFaceId = await _unitOfWork.Repository<FaceId>().AnyAsync(f => f.UserId == user.Id);
+            
             // Build login response with onboarding status
             var loginResponse = new LoginResponseVM
             {
@@ -208,7 +212,8 @@ namespace BLL.Services.Impelementation
                     Email = user.Email!,
                     UserName = user.UserName!,
                     FullName = user.FullName,
-                    Role = role
+                    Role = role,
+                    HasFaceId = hasFaceId
                 }
             };
             

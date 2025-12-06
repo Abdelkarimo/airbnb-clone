@@ -23,6 +23,7 @@ namespace BLL.ModelVM.Auth
         public string FullName { get; set; } = null!;
         public string Role { get; set; } = null!;
         public string? FirebaseUid { get; set; }
+        public bool HasFaceId { get; set; }
 
     }
 

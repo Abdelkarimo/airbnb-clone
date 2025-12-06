@@ -3,6 +3,7 @@ import { Router, RouterOutlet, NavigationStart, NavigationEnd, NavigationError, 
 import { Navbar } from './shared/components/navbar/navbar';
 import { Footer } from './shared/components/footer/footer';
 import { BrokerChatComponent } from './shared/components/broker-chat/broker-chat';
+import { FaceIdPromptComponent } from './shared/components/face-id-prompt/face-id-prompt';
 import { NotificationHub } from './core/services/notification-hub';
 import { MessageHub } from './core/services/message-hub';
 import { NotificationStoreService } from './core/services/notification-store';
@@ -17,7 +18,7 @@ import { BookingStoreService } from './core/services/Booking/booking-store-servi
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Navbar, Footer, BrokerChatComponent],
+  imports: [RouterOutlet, Navbar, Footer, BrokerChatComponent, FaceIdPromptComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })

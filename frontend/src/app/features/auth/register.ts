@@ -292,6 +292,9 @@ export class Register {
         this.isLoading = false;
         this.successMessage = this.translate.instant('auth.faceRegistrationSuccess') || 'Face registered successfully!';
         
+        // Update hasFaceId flag
+        localStorage.setItem('hasFaceId', 'true');
+        
         // Close the face capture modal
         this.faceCapture.closeModal();
         

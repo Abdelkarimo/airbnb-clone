@@ -215,6 +215,12 @@ export class AuthService {
 
           // Save user thumbnail if available
           if (this.isBrowser && user) {
+            // Save hasFaceId flag
+            if (user.hasFaceId !== undefined) {
+              localStorage.setItem('hasFaceId', user.hasFaceId.toString());
+              console.log('hasFaceId flag stored:', user.hasFaceId);
+            }
+            
             if (user.profileImageUrl) {
               localStorage.setItem('userThumbnail', user.profileImageUrl);
             }
@@ -269,6 +275,13 @@ export class AuthService {
           if (this.isBrowser && isFirstLogin !== undefined) {
             localStorage.setItem('isFirstLogin', isFirstLogin.toString());
             console.log('isFirstLogin flag stored:', isFirstLogin);
+          }
+
+          // Save hasFaceId flag (new users don't have face ID yet)
+          if (this.isBrowser && loginResponse?.user) {
+            const hasFaceId = loginResponse.user.hasFaceId ?? false;
+            localStorage.setItem('hasFaceId', hasFaceId.toString());
+            console.log('hasFaceId flag stored:', hasFaceId);
           }
 
           // Extract user data from token and save to USER_KEY for new AuthService

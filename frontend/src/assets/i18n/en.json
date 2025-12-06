@@ -28,7 +28,8 @@
     "noData": "No data available",
     "or": "or",
     "about": "About",
-    "contact": "Contact"
+    "contact": "Contact",
+    "later": "Later"
   },
   "faceCapture": {
     "title": "Capture Your Face",
@@ -53,6 +54,12 @@
     "benefit3": "Optional - You can still use email/password",
     "registerBtn": "📸 Register Face Now",
     "skipBtn": "Skip for Now"
+  },
+  "faceId": {
+    "setupPromptTitle": "🔐 Secure Your Account with Face ID",
+    "setupPromptMessage": "Set up face recognition for faster, more secure logins. It only takes a moment!",
+    "setupNow": "Set Up Face ID",
+    "later": "Maybe Later"
   },
   "navbar": {
     "home": "Home",
