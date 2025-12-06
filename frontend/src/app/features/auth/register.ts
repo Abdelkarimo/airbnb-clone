@@ -278,14 +278,6 @@ export class Register {
       return;
     }
 
-    // Convert the captured face image to base64 for thumbnail storage
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      // Save the face image as thumbnail in localStorage
-      localStorage.setItem('userThumbnail', e.target.result);
-    };
-    reader.readAsDataURL(file);
-
     this.auth.registerFace(userId, file).subscribe({
       next: (res) => {
         console.log('Face registration successful:', res);

@@ -310,7 +310,7 @@ export class AuthService {
   logout() {
     // clear token and notify
     this.removeToken();
-    
+
     // Clear user-specific data from localStorage
     if (this.isBrowser) {
       localStorage.removeItem('userThumbnail');
@@ -319,7 +319,7 @@ export class AuthService {
       localStorage.removeItem('isFirstLogin');
       localStorage.removeItem('faceIdPromptDismissed');
     }
-    
+
     // navigate to login page
     this.router.navigate(['/auth/login']);
   }
