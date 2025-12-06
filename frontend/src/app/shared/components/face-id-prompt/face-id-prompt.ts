@@ -14,11 +14,11 @@ import { FaceCaptureComponent } from '../../../features/auth/face-capture/face-c
 })
 export class FaceIdPromptComponent implements OnInit, OnDestroy {
   @ViewChild('faceCapture') faceCapture!: FaceCaptureComponent;
-  
+
   showPrompt = false;
   isDismissed = false;
   isLoading = false;
-  
+
   private auth = inject(AuthService);
   private sub = new Subscription();
 
@@ -39,7 +39,7 @@ export class FaceIdPromptComponent implements OnInit, OnDestroy {
     // Check localStorage flag
     const hasFaceId = localStorage.getItem('hasFaceId');
     const dismissed = localStorage.getItem('faceIdPromptDismissed');
-    
+
     // If user doesn't have face ID and hasn't dismissed the prompt
     if (hasFaceId === 'false' && dismissed !== 'true') {
       // Show prompt after a short delay for better UX
@@ -63,7 +63,7 @@ export class FaceIdPromptComponent implements OnInit, OnDestroy {
   onFaceCaptured(file: File) {
     this.isLoading = true;
     const userId = this.auth.getPayload()?.sub || this.auth.getPayload()?.nameid;
-    
+
     if (!userId) {
       this.isLoading = false;
       return;
@@ -80,20 +80,20 @@ export class FaceIdPromptComponent implements OnInit, OnDestroy {
       next: () => {
         console.log('Face registration successful');
         this.isLoading = false;
-        
+
         // Update hasFaceId flag
         localStorage.setItem('hasFaceId', 'true');
-        
+
         // Close the face capture modal
         this.faceCapture.closeModal();
-        
+
         // Hide the prompt
         this.showPrompt = false;
       },
       error: (err) => {
         console.error('Face registration failed:', err);
         this.isLoading = false;
-        
+
         // Close the face capture modal on error
         this.faceCapture.closeModal();
       }

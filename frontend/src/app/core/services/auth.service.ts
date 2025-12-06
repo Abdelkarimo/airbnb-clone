@@ -220,11 +220,11 @@ export class AuthService {
               localStorage.setItem('hasFaceId', user.hasFaceId.toString());
               console.log('hasFaceId flag stored:', user.hasFaceId);
             }
-            
+
             if (user.profileImageUrl) {
               localStorage.setItem('userThumbnail', user.profileImageUrl);
             }
-            
+
             // Generate and save initials if no profile image
             if (!user.profileImageUrl && user.fullName) {
               const initials = this.generateInitials(user.fullName);
@@ -336,11 +336,11 @@ export class AuthService {
     return this.http.post<any>('http://localhost:5235/api/faceid/login', formData).pipe(
       tap(res => {
         console.log('Face login full response:', res);
-        
+
         // Backend returns { result: "token_string", success: boolean, ... }
         // The token is directly in result as a string, not nested in an object
         let token = res?.result;
-        
+
         // If result is an object with token property, use that
         if (typeof token === 'object' && token?.token) {
           token = token.token;
@@ -383,12 +383,12 @@ export class AuthService {
    */
   private generateInitials(fullName: string): string {
     if (!fullName) return '';
-    
+
     const names = fullName.trim().split(' ');
     if (names.length === 1) {
       return names[0].charAt(0).toUpperCase();
     }
-    
+
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   }
 }

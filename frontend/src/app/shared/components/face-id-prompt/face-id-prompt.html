@@ -27,6 +27,6 @@
 <!-- Face Capture Component -->
 <app-face-capture
   #faceCapture
-  (faceCaptured)="onFaceCaptured($event)"
-  (cancelled)="onFaceCaptureCancelled()"
+  (frameCapture)="onFaceCaptured($event)"
+  (cancel)="onFaceCaptureCancelled()"
 ></app-face-capture>

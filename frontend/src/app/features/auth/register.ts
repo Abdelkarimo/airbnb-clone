@@ -29,7 +29,7 @@ export class Register {
   isLoading = false;
   fieldErrors: { [key: string]: string } = {};
   showFaceRegistrationPrompt = false;
-  
+
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -200,16 +200,16 @@ export class Register {
         // Store the token from registration response
         if (response?.result?.Token) {
           localStorage.setItem('token', response.result.Token);
-          
+
           // Store user info including thumbnail if available
           if (response.result.User) {
             const user = response.result.User;
-            
+
             // Save user thumbnail to localStorage if available
             if (user.ProfileImageUrl) {
               localStorage.setItem('userThumbnail', user.ProfileImageUrl);
             }
-            
+
             // Generate initials-based thumbnail if no profile image
             if (!user.ProfileImageUrl && user.FullName) {
               const initials = this.generateInitials(user.FullName);
@@ -271,7 +271,7 @@ export class Register {
   onFaceCaptured(file: File) {
     this.isLoading = true;
     const userId = this.auth.getPayload()?.sub || this.auth.getPayload()?.nameid;
-    
+
     if (!userId) {
       this.isLoading = false;
       this.errorMessage = this.translate.instant('auth.userIdError') || 'Unable to get user ID. Please try again.';
@@ -291,13 +291,13 @@ export class Register {
         console.log('Face registration successful:', res);
         this.isLoading = false;
         this.successMessage = this.translate.instant('auth.faceRegistrationSuccess') || 'Face registered successfully!';
-        
+
         // Update hasFaceId flag
         localStorage.setItem('hasFaceId', 'true');
-        
+
         // Close the face capture modal
         this.faceCapture.closeModal();
-        
+
         setTimeout(() => {
           this.proceedToNextStep();
         }, 1500);
@@ -306,7 +306,7 @@ export class Register {
         console.error('Face registration failed:', err);
         this.isLoading = false;
         this.errorMessage = err?.error?.message || this.translate.instant('auth.faceRegistrationFailed') || 'Face registration failed. Please try again.';
-        
+
         // Close the face capture modal on error
         this.faceCapture.closeModal();
       }
@@ -320,12 +320,12 @@ export class Register {
 
   private generateInitials(fullName: string): string {
     if (!fullName) return '';
-    
+
     const names = fullName.trim().split(' ');
     if (names.length === 1) {
       return names[0].charAt(0).toUpperCase();
     }
-    
+
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   }
 
